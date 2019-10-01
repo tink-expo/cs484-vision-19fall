@@ -1,4 +1,4 @@
-function output = my_imfilter(image, filter)
+function output = my_imfilter(img, filter)
 % This function is intended to behave like the built in function imfilter()
 % when operating in convolution mode. See 'help imfilter'. 
 % While "correlation" and "convolution" are both called filtering, 
@@ -18,48 +18,49 @@ function output = my_imfilter(image, filter)
 % A better approach is to mirror or reflect the image content in the padding.
 
 % Uncomment to call imfilter to see the desired behavior.
-% output = imfilter(image, filter, 'conv');
+% output = imfilter(img, filter, 'conv');
 
 %%%%%%%%%%%%%%%%
 % Your code here
 %%%%%%%%%%%%%%%%
 
-[filter_h, filter_w] = size(filter);
-[img_h, img_w, img_c] = size(img);
-if mod(filter_h, 2) ~= 1 || mod(filter_w, 2) ~= 1
+[fh, fw] = size(filter);
+if mod(fh, 2) ~= 1 || mod(fw, 2) ~= 1
     output = "Error Message";
     return
 end
 
-pad_h = (filter_h - 1) / 2;
-pad_w = (filter_w - 1) / 2;
-target_img = padarray(img, [pad_h, pad_w], 'both');
-output = zeros(img_h, img_w, img_c);
+ph = (fh - 1) / 2;
+pw = (fw - 1) / 2;
+fft_img = padarray(img, [ph, pw], 'both', 'symmetric');
 
-% for conv
-filter = rot90(filter);
-filter = rot90(filter);
+[h, w, c] = size(fft_img);
 
-for target_center_i = pad_h + 1 : pad_h + img_h
-    for target_center_j = pad_w + 1 : pad_w + img_w
-        for c = 1 : img_c
-            target = target_img(...
-                target_center_i - pad_h : target_center_i + pad_h,...
-                target_center_j - pad_w : target_center_j + pad_w,...
-                c);
-            output(...
-                target_center_i - pad_h,...
-                target_center_j - pad_w,...
-                c) = sum(sum(filter .* double(target)));
-        end
-    end
+fft_filter = zeros(h, w);
+
+fft_filter(1 : ph+1, 1 : pw+1) =...
+    filter(fh-ph : fh, fw-pw : fw);
+
+fft_filter(h+1-ph : h, 1 : pw+1) =...
+    filter(1 : ph, fw-pw : fw);
+
+fft_filter(1 : ph+1, w+1-pw : w) =...
+    filter(fh-ph : fh, 1 : pw);
+
+fft_filter(h+1-ph : h, w+1-pw : w) =...
+    filter(1 : ph, 1 : pw);
+
+output = zeros(h, w, c);
+for z = 1 : c
+    output(:, :, z) = ifft2(fft2(fft_img(:, :, z)) .* fft2(fft_filter));
 end
+
+output = output(ph+1 : h-ph, pw+1 : w-pw, :);
 
 if isinteger(img)
     output = round(output);
 end
 output = cast(output, 'like', img);
-            
         
         
 
