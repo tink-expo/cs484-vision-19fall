@@ -37,18 +37,10 @@ fft_img = padarray(img, [ph, pw], 'both', 'symmetric');
 [h, w, c] = size(fft_img);
 
 fft_filter = zeros(h, w);
-
-fft_filter(1 : ph+1, 1 : pw+1) =...
-    filter(fh-ph : fh, fw-pw : fw);
-
-fft_filter(h+1-ph : h, 1 : pw+1) =...
-    filter(1 : ph, fw-pw : fw);
-
-fft_filter(1 : ph+1, w+1-pw : w) =...
-    filter(fh-ph : fh, 1 : pw);
-
-fft_filter(h+1-ph : h, w+1-pw : w) =...
-    filter(1 : ph, 1 : pw);
+fft_filter(1 : ph+1, 1 : pw+1) = filter(fh-ph : fh, fw-pw : fw);
+fft_filter(h+1-ph : h, 1 : pw+1) = filter(1 : ph, fw-pw : fw);
+fft_filter(1 : ph+1, w+1-pw : w) = filter(fh-ph : fh, 1 : pw);
+fft_filter(h+1-ph : h, w+1-pw : w) = filter(1 : ph, 1 : pw);
 
 output = zeros(h, w, c);
 for z = 1 : c
@@ -56,10 +48,6 @@ for z = 1 : c
 end
 
 output = output(ph+1 : h-ph, pw+1 : w-pw, :);
-
-if isinteger(img)
-    output = round(output);
-end
 output = cast(output, 'like', img);
         
         
