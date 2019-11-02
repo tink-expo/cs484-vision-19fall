@@ -6,12 +6,11 @@ function f = calculate_fundamental_matrix(pts1, pts2)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Your code here
-    T1 = getNormalizationMatrix(pts1);
-    T2 = getNormalizationMatrix(pts2);
-    
     num_corrs = size(pts1, 1);
-    hpts1 = (T1 * [pts1 ones(num_corrs, 1)]')';
-    hpts2 = (T2 * [pts2 ones(num_corrs, 1)]')';
+    [npts1_t, T1] = normalize_points(pts1', 2);
+    [npts2_t, T2] = normalize_points(pts2', 2);
+     hpts1 = [npts1_t' ones(num_corrs, 1)];
+     hpts2 = [npts2_t' ones(num_corrs, 1)];
     
     A = zeros(num_corrs, 9);
     for r = 1:num_corrs
@@ -41,19 +40,4 @@ end
 function a_row = genRow(hpt1, hpt2)
     a_row_mat = hpt2' * hpt1;
     a_row = reshape(a_row_mat, [1, 9]);
-end
-
-function T = getNormalizationMatrix(pts)
-    pts = pts';
-    pts = pts(1:2, :);
-    cent = mean(pts, 2);
-    mean_dist_cent = mean(sqrt(sum((pts - cent).^2)));
-    if mean_dist_cent > 0
-        scale = sqrt(2) / mean_dist_cent;
-    else
-        scale = 1;
-    end
-    T = diag(ones(1, 3) * scale);
-    T(1:end-1, end) = -scale * cent;
-    T(end) = 1;
 end
