@@ -1,34 +1,30 @@
 function output = my_imfilter(img, filter)
 
-[filter_h, filter_w] = size(filter);
-[img_h, img_w, img_c] = size(img);
-if mod(filter_h, 2) ~= 1 || mod(filter_w, 2) ~= 1
-    output = "Error Message";
-    return
-end
+intput_image = img;
 
-pad_h = (filter_h - 1) / 2;
-pad_w = (filter_w - 1) / 2;
-target_img = padarray(img, [pad_h, pad_w], 'both', 'symmetric');
-output = zeros(img_h, img_w, img_c);
+% Get the row & column size of input image and filter in order to admit
+% multi size picture
+[intput_row, intput_col] = size(intput_image(:,:,1));
+[filter_row, filter_col] = size(filter);
 
-% for conv
-filter = rot90(filter);
-filter = rot90(filter);
+% Pad image with zeros (amount = minimum need of filter = half of row and
+% column
+pad_input_image = padarray(intput_image, [(filter_row - 1)/2, (filter_col - 1)/2]);
 
-for target_center_i = pad_h + 1 : pad_h + img_h
-    for target_center_j = pad_w + 1 : pad_w + img_w
-        for c = 1 : img_c
-            target = target_img(...
-                target_center_i - pad_h : target_center_i + pad_h,...
-                target_center_j - pad_w : target_center_j + pad_w,...
-                c);
-            output(...
-                target_center_i - pad_h,...
-                target_center_j - pad_w,...
-                c) = sum(sum(filter .* double(target)));
-        end
-    end
+output = zeros(intput_row, intput_col, 3);
+
+for layer = 1:size(intput_image, 3) % ensure to be OK when input is gray image
+    % make all filter_row*filter_col size patch of input image be columns
+    columns = im2col(pad_input_image(:,:,layer), [filter_row, filter_col]);
+    
+    % transpose the filter in order to make it convolution (but not correlation)
+    filter2 = transpose(filter(:));
+    
+    % filter the image
+    filterd_columns = filter2 * double(columns);
+    
+    % recover from columns to image form
+    output(:,:,layer) = col2im(filterd_columns, [1, 1], [intput_row, intput_col]);
 end
 
 if isinteger(img)

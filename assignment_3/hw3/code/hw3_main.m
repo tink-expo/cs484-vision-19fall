@@ -10,6 +10,8 @@ bayer_img2 = imread(img_path_2);
 %% HW3-a
 % Bayer pattern bicubic interpolation
 img1 = bayer_to_rgb_bicubic(bayer_img1);
+figure;
+imshow(img1);
 img2 = bayer_to_rgb_bicubic(bayer_img2);
 
 % Read matched feature points (n by 2 array)
@@ -56,13 +58,18 @@ imshow(stereoAnaglyph(Rectified_img_left, Rectified_img_right));title('Stereo An
 %% HW3-d
 % Generate a disparity map from the two rectified images
 % You may change the window_size and max_disparity
-window_size = 5;
-max_disparity = 40;
+window_size = 3;
+max_disparity = 160;
 
 gray_img1 = im2double(rgb2gray(Rectified_img_left));
 gray_img2 = im2double(rgb2gray(Rectified_img_right));
 
-Disparity_map = calculate_disparity_map(gray_img1, gray_img2, window_size, max_disparity);
+% Disparity_map = calculate_disparity_map(gray_img1, gray_img2, window_size, max_disparity);
+% f = ones(window_size, window_size) / (window_size * window_size);
+% for i = 1:max_disparity+1
+%     cv(:,:,i) = imfilter(cv(:,:,i), f, 'replicate');
+% end
+% [~, Disparity_map] = max(cv,[],3);
 
 % Visualize the disparity map
-figure;imagesc(Disparity_map);colorbar;
+% figure;imagesc(Disparity_map);colorbar;
