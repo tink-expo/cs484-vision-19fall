@@ -58,18 +58,31 @@ imshow(stereoAnaglyph(Rectified_img_left, Rectified_img_right));title('Stereo An
 %% HW3-d
 % Generate a disparity map from the two rectified images
 % You may change the window_size and max_disparity
-window_size = 3;
-max_disparity = 160;
+window_size = 5;
+max_disparity = 60;
 
 gray_img1 = im2double(rgb2gray(Rectified_img_left));
 gray_img2 = im2double(rgb2gray(Rectified_img_right));
 
-% Disparity_map = calculate_disparity_map(gray_img1, gray_img2, window_size, max_disparity);
-% f = ones(window_size, window_size) / (window_size * window_size);
-% for i = 1:max_disparity+1
-%     cv(:,:,i) = imfilter(cv(:,:,i), f, 'replicate');
-% end
-% [~, Disparity_map] = max(cv,[],3);
 
-% Visualize the disparity map
+% left_path = [data_path,'left.jpg'];
+% right_path = [data_path,'right.jpg'];
+% left_img = imread(left_path);
+% right_img = imread(right_path);
+% s1 = size(left_img)
+% s2 = size(right_img)
+% gray_img1 = im2double(rgb2gray(left_img));
+% gray_img2 = im2double(rgb2gray(right_img));
+
+% [Disparity_map, cv] = calculate_disparity_map(gray_img1, gray_img2, window_size, max_disparity);
+% cv2 = imfilter(cv, fspecial('average', window_size), 'symmetric');
+% cv3 = zeros(size(cv));
+% for k=1:max_disparity
+%     cv3(:,:,k) = medfilt2(cv(:,:,k), [window_size, window_size], 'symmetric');
+% end
+% [~, Disparity_map2] = max(cv2,[],3);
+% [~, Disparity_map3] = max(cv3,[],3);
+% %Visualize the disparity map
 % figure;imagesc(Disparity_map);colorbar;
+% figure;imagesc(Disparity_map2);colorbar;
+% figure;imagesc(Disparity_map3);colorbar;
