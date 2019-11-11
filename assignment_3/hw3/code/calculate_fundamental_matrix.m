@@ -14,7 +14,8 @@ function f = calculate_fundamental_matrix(pts1, pts2)
     
     A = zeros(num_corrs, 9);
     for r = 1:num_corrs
-        A(r, :) = genRow(hpts1(r, :), hpts2(r, :));
+        a_row_mat = (hpts2(r, :))' * hpts1(r, :);
+        A(r, :) = reshape(a_row_mat, [1, 9]);
     end
     
     [Veig, Deig] = eig(A' * A);
