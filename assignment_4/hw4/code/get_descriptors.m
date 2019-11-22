@@ -125,11 +125,3 @@ magnitude = hypot(grad_x, grad_y);
 direction = atan2(-grad_y, grad_x) * 180 / pi;
 
 end
-
-
-
-
-
-
-
-
