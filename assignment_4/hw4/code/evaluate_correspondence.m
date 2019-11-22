@@ -90,7 +90,7 @@ numPostMerge = length(x1_est);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Distance test
 for i = 1:length(x1_est)
-    fprintf('( %4.0f, %4.0f) to ( %4.0f, %4.0f)', x1_est(i), y1_est(i), x2_est(i), y2_est(i));
+    % fprintf('( %4.0f, %4.0f) to ( %4.0f, %4.0f)', x1_est(i), y1_est(i), x2_est(i), y2_est(i));
 
     % For each x1_est, find nearest ground truth point in x1
     x_dists = x1_est(i) - x1;
@@ -108,14 +108,14 @@ for i = 1:length(x1_est)
     % or
     % If nearest ground truth correspondence offset isn't within 40 pixels
     % of the estimated correspondence offset.
-    fprintf(' g.t. point %4.0f px. Match error %4.0f px.', dists(1), match_dist);
+    % fprintf(' g.t. point %4.0f px. Match error %4.0f px.', dists(1), match_dist);
     
     if(dists(1) > 150 || match_dist > 40)
         good_matches(i) = 0;
-        fprintf('  incorrect\n');
+        % fprintf('  incorrect\n');
     else
         good_matches(i) = 1;
-        fprintf('  correct\n');
+        % fprintf('  correct\n');
     end
 end
 

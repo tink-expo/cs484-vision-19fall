@@ -1,1 +1,1 @@
-[a, b, c, d] = projLF()
+[a, b, c, d] = projLF();

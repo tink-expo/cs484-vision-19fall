@@ -23,12 +23,24 @@
 
 function [matches, confidences] = match_features(features1, features2)
 
-% Placeholder random matches and confidences.
-num_features = min(size(features1, 1), size(features2,1));
-matches = zeros(num_features, 2);
-matches(:,1) = randperm(num_features); 
-matches(:,2) = randperm(num_features);
-confidences = rand(num_features,1);
+k = min(size(features1, 1), size(features2,1));
+matches = zeros(k, 2);
+confidences = zeros(k, 1);
+
+for i = 1:k
+    diff = features2 - features1(i, :);
+    dist = vecnorm(diff');
+    [min_dist, min_idx] = mink(dist, 2);
+    matches(i, :) = [i, min_idx(1)];
+    if min_dist(2) == 0
+        confidences(i) = 1;
+    else
+        confidences(i) = 1 - min_dist(1) / min_dist(2);
+    end
+end
+
+end
+
 
 % Remember that the NNDR test will return a number close to 1 for 
 % feature points with similar distances.

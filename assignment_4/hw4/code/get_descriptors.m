@@ -54,10 +54,75 @@ function [features] = get_features(image, x, y, descriptor_window_image_width)
 % Another simple trick which can help is to raise each element of the final
 % feature vector to some power that is less than one.
 
-%Placeholder that you can delete. Empty features.
-features = zeros(size(x,1), 128, 'single');
+% Placeholder that you can delete. Empty features.
+% features = zeros(size(x,1), 128, 'single');
 
+if mod(descriptor_window_image_width, 4) ~= 0
+    return
+end
 
+[imgH, imgW] = size(image);
+
+k = size(x, 1);
+features = zeros(k, 128);
+
+cell_width = descriptor_window_image_width / 4;
+gauss_window = fspecial( ...
+    'gaussian', descriptor_window_image_width, ...
+    descriptor_window_image_width / 2);
+
+for pt_idx = 1 : k
+    pt_pos = [y(pt_idx), x(pt_idx)];
+    for cell_y = 1 : 4
+        for cell_x = 1 : 4
+            cell_top = pt_pos + cell_width * [cell_y - 3, cell_x - 3];
+            cell_bottom = cell_top + cell_width - 1;
+            if cell_top <= [imgH, imgW] | cell_bottom >= [1, 1]
+                cell_top = max(cell_top, [1, 1]);
+                cell_bottom = min(cell_bottom, [imgH, imgW]);
+                [grad_dirs, grad_mags] = get_gradient(image( ...
+                    cell_top(1):cell_bottom(1), ...
+                    cell_top(2):cell_bottom(2)));
+                
+                grad_dirs = reshape( ...
+                    min(max(ceil((grad_dirs + 180) / 45), 1), 8), ...
+                    1, numel(grad_dirs));
+                
+                cell_idx = 4 * (cell_y - 1) + cell_x;
+                feature_indices = (cell_idx - 1) * 8 + grad_dirs;
+                
+                gauss_trans = -pt_pos + descriptor_window_image_width / 2 + 1;
+                gauss_top = cell_top + gauss_trans;
+                gauss_bottom = cell_bottom + gauss_trans;
+                
+                grad_mags = grad_mags .* gauss_window( ...
+                    gauss_top(1):gauss_bottom(1), ...
+                    gauss_top(2):gauss_bottom(2));
+                grad_mags = reshape(grad_mags, 1, numel(grad_mags));
+                
+                for i = 1 : numel(feature_indices)
+                    features(pt_idx, feature_indices(i)) = ...
+                        features(pt_idx, feature_indices(i)) + grad_mags(i);
+                end
+            end
+        end
+    end
+end
+features = features .^ 0.7;
+features = normalize(features', 'norm', 1)';
+features = min(features, 0.2);
+features = normalize(features', 'norm', 1)';
+
+end
+
+function [direction, magnitude] = get_gradient(img)
+
+h = -fspecial('prewitt');
+grad_x = imfilter(img, h', 'replicate');
+grad_y = imfilter(img, h, 'replicate');
+
+magnitude = hypot(grad_x, grad_y);
+direction = atan2(-grad_y, grad_x) * 180 / pi;
 
 end
 
