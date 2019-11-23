@@ -29,8 +29,10 @@ function f = calculate_fundamental_matrix(pts1, pts2)
     
     f = T2' * (U * Ss * V') * T1;
     
+    % Normalize the fundamental matrix and enforce the last element to be
+    % positive.
     f = f / norm(f);
-    if f(end) < 0
+    if f(3, 3) < 0
       f = -f;
     end
 

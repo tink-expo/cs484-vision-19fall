@@ -1,24 +1,32 @@
 %% HW3-d
 % Generate the disparity map from two rectified images. Use NCC for the
 % mathing cost function.
+
+% [NOTE 1] : Parameter window_size is deleted.
 function d = calculate_disparity_map(img_left, img_right, max_disparity)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Your code here
     
-    cost_vol_3 = get_cost_vol(img_left, img_right, 3, max_disparity);
-    cost_vol_5 = get_cost_vol(img_left, img_right, 5, max_disparity);
-    cost_vol_9 = get_cost_vol(img_left, img_right, 9, max_disparity);
-    cost_vol = (cost_vol_3 + cost_vol_5 + cost_vol_9) / 3;
+    % [NOTE 2] : I defined local functions get_cost_vol and calculate_dev
+    % outside of the 'Your code here' commented block.
     
-    % In order to avoid unexpected result by the large kernel in the
-    % disparity map, manually set the cost volume's disparity 1 layer value
-    % to large value (2), when the position corresponds to the black margin
-    % region of the template image (img_right).
+    % Caculate costs with window_size 3 and window_size 9, and accumulate
+    % them in a single cost volume with weight 0.5, 0.5 each.
+    cost_vol_3 = get_cost_vol(img_left, img_right, 3, max_disparity);
+    cost_vol_9 = get_cost_vol(img_left, img_right, 9, max_disparity);
+    cost_vol = (cost_vol_3 + cost_vol_9) / 2;
+    
+    % For the positions corresponding to black margin region of the 
+    % rectified images, set the cost volume value of disparity layer 1 to
+    % a value larger then any value that can be caculated as a result of 
+    % NCC, so that the region will result in disparity 1 in the disparity 
+    % map. This was to avoid unexpected effect at the black margin region 
+    % that can be caused by large kernels.
     % In order to avoid real picture's dark area to be recognized as black
     % margin region, first apply median filter to the image before
     % this procedure.
-    img_black_area = medfilt2(img_right) == 0;
+    img_black_area = (~medfilt2(img_left)) | (~medfilt2(img_right));
     cost_vol_slice = cost_vol(:, :, 1);
     cost_vol_slice(img_black_area) = 2;
     cost_vol(:, :, 1) = cost_vol_slice;

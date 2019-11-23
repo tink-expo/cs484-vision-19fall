@@ -9,6 +9,9 @@ function [rectified1, rectified2] = rectify_stereo_images(img1, img2, h1, h2)
     % Hint: Note that you should care about alignment of two images.
     % In order to superpose two rectified images, you need to create
     % certain amount of margin.
+    
+    % [NOTE] : I defined local function get_t_vertices outside of the 'Your
+    % code here' commented block.
 
     tform1 = projective2d(h1);
     tform2 = projective2d(h2);

@@ -61,6 +61,8 @@ max_disparity = 50;
 gray_img1 = im2double(rgb2gray(Rectified_img_left));
 gray_img2 = im2double(rgb2gray(Rectified_img_right));
 
+% [NOTE] I made a change to function calculate_disparity_map's template (the
+% parameter window_size is deleted.)
 Disparity_map = calculate_disparity_map(gray_img1, gray_img2, max_disparity);
 
 % Visualize the disparity map
