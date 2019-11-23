@@ -23,7 +23,7 @@
 
 function [matches, confidences] = match_features(features1, features2)
 
-k = min(size(features1, 1), size(features2,1));
+k = size(features1, 1);
 matches = zeros(k, 2);
 confidences = zeros(k, 1);
 

@@ -46,7 +46,7 @@ function [x, y, confidence, scale, orientation] = get_interest_points(image, des
 % - Notre Dame: ~1300 and ~1700
 % - Mount Rushmore: ~3500 and ~4500
 % - Episcopal Gaudi: ~1000 and ~9000
-
+[img_h, img_w] = size(image);
 Gdy = fspecial('sobel');
 Gdx = Gdy';
 Ix = imfilter(image, Gdx, 'conv', 'replicate');
@@ -62,12 +62,44 @@ Harris = (IxIx .* IyIy - IxIy .* IxIy) - alpha * (IxIx + IyIy) .^ 2;
 
 threshold = 0.0000045;
 IsCorner = Harris > threshold & islocalmax(Harris) & islocalmax(Harris, 2);
+
+[y_found, x_found] = find(IsCorner);
+
+% Adaptive non-maximal suppression.
+rad = 24;
+circle_mask = get_circle_mask(rad);
+for i = 1 : size(y_found, 1)
+    cy = y_found(i);
+    cx = x_found(i);
+    if ~(all([cy-rad, cx-rad] >= [1, 1] & [cy+rad, cx+rad] <= [img_h, img_w]) && ...
+            all(all( ...
+            image(cy-rad : cy+rad, cx-rad : cx+rad) .* circle_mask) < ...
+            image(cy, cx) * 0.9))
+        IsCorner(i) = false;
+    end
+end
 [y_found, x_found] = find(IsCorner);
 [~, sorted_i_found] = sort(Harris(IsCorner), 'descend');
 
-sorted_i = sorted_i_found(1:3000);
+% sorted_i = sorted_i_found(1:min(size(y_found, 1), 9000));
+sorted_i = sorted_i_found(1:min(size(sorted_i_found, 1), 3000));
 y = y_found(sorted_i);
 x = x_found(sorted_i);
+
+end
+
+function h = get_circle_mask(radius)
+
+hsize = radius * 2 + 1;
+h = zeros(hsize);
+for i = 1 : hsize
+    for j = 1 : hsize
+        if hypot(i - (radius+1), j - (radius+1)) <= radius
+            h(i, j) = 1;
+        end
+    end
+end
+h(radius+1, radius+1) = 0;
 
 end
 

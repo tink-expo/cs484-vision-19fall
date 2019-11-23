@@ -61,7 +61,7 @@ if mod(descriptor_window_image_width, 4) ~= 0
     return
 end
 
-[imgH, imgW] = size(image);
+[img_h, img_w] = size(image);
 
 k = size(x, 1);
 features = zeros(k, 128);
@@ -75,38 +75,62 @@ for pt_idx = 1 : k
     pt_pos = [y(pt_idx), x(pt_idx)];
     for cell_y = 1 : 4
         for cell_x = 1 : 4
+            % It is guaranteed that [1, 1] <= cell_top and 
+            % cell_bottom <= [img_h, img_w].
             cell_top = pt_pos + cell_width * [cell_y - 3, cell_x - 3];
             cell_bottom = cell_top + cell_width - 1;
-            if cell_top <= [imgH, imgW] | cell_bottom >= [1, 1]
-                cell_top = max(cell_top, [1, 1]);
-                cell_bottom = min(cell_bottom, [imgH, imgW]);
-                [grad_dirs, grad_mags] = get_gradient(image( ...
-                    cell_top(1):cell_bottom(1), ...
-                    cell_top(2):cell_bottom(2)));
-                
-                grad_dirs = reshape( ...
-                    min(max(ceil((grad_dirs + 180) / 45), 1), 8), ...
-                    1, numel(grad_dirs));
-                
-                cell_idx = 4 * (cell_y - 1) + cell_x;
-                feature_indices = (cell_idx - 1) * 8 + grad_dirs;
-                
-                gauss_trans = -pt_pos + descriptor_window_image_width / 2 + 1;
-                gauss_top = cell_top + gauss_trans;
-                gauss_bottom = cell_bottom + gauss_trans;
-                
-                grad_mags = grad_mags .* gauss_window( ...
-                    gauss_top(1):gauss_bottom(1), ...
-                    gauss_top(2):gauss_bottom(2));
-                grad_mags = reshape(grad_mags, 1, numel(grad_mags));
-                
-                for i = 1 : numel(feature_indices)
-                    features(pt_idx, feature_indices(i)) = ...
-                        features(pt_idx, feature_indices(i)) + grad_mags(i);
-                end
+            
+            [grad_dirs, grad_mags] = get_gradient(image( ...
+                cell_top(1):cell_bottom(1), ...
+                cell_top(2):cell_bottom(2)));
+
+            grad_dirs = reshape( ...
+                min(max(ceil((grad_dirs + 180) / 45), 1), 8), ...
+                1, numel(grad_dirs));
+
+            gauss_trans = -pt_pos + descriptor_window_image_width / 2 + 1;
+            gauss_top = cell_top + gauss_trans;
+            gauss_bottom = cell_bottom + gauss_trans;
+
+            grad_mags = grad_mags .* gauss_window( ...
+                gauss_top(1):gauss_bottom(1), ...
+                gauss_top(2):gauss_bottom(2));
+            grad_mags = reshape(grad_mags, 1, numel(grad_mags));
+
+            cell_idx = 4 * (cell_y - 1) + cell_x;
+            feature_cell_start = (cell_idx - 1) * 8;
+            for i = 1 : numel(grad_dirs)
+                features(pt_idx, feature_cell_start + grad_dirs(i)) = ...
+                    features(pt_idx, feature_cell_start + grad_dirs(i)) ...
+                    + grad_mags(i);
             end
         end
+        
+        % Rotation estimation:
+        % Normalize rotation so that the most dominent rotation is always 
+        % histogram 1.
+%         [~, i_dominent] = max(feature_stacked);
+%         if i_dominent ~= 1
+%             for cell_idx = 1 : 16
+%                 s_idx = (cell_idx - 1) * 8 + 1;
+%                 e_idx = s_idx + 8 - 1;
+%                 feature_cell = features(pt_idx, s_idx : e_idx);
+%                 feature_cell = ...
+%                     [feature_cell(i_dominent:end) feature_cell(1:i_dominent-1)];
+%                 features(pt_idx, s_idx : e_idx) = feature_cell;
+%             end
+%         end
     end
+    
+%     % Rotation estimation:
+%     % Normalize rotation so that the most dominent rotation is always histogram
+%     % 1.
+%     feature = features(pt_idx, :);
+%     [~, i_dominent] = max(feature);
+%     if i_dominent ~= 1
+%         feature = [feature(i_dominent:end) feature(1:i_dominent-1)];
+%     end
+%     features(pt_idx, :) = feature;
 end
 features = features .^ 0.7;
 features = normalize(features', 'norm', 1)';
