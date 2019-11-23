@@ -71,11 +71,14 @@ circle_mask = get_circle_mask(rad);
 for i = 1 : size(y_found, 1)
     cy = y_found(i);
     cx = x_found(i);
-    if ~(all([cy-rad, cx-rad] >= [1, 1] & [cy+rad, cx+rad] <= [img_h, img_w]) && ...
-            all(all( ...
-            image(cy-rad : cy+rad, cx-rad : cx+rad) .* circle_mask) < ...
-            image(cy, cx) * 0.9))
-        IsCorner(i) = false;
+%     if ~(cy-rad >= 1 && cx-rad >= 1 && cy+rad <= img_h && cx+rad <= img_w && ...
+%             all(all( ...
+%             image(cy-rad : cy+rad, cx-rad : cx+rad) .* circle_mask) < ...
+%             image(cy, cx) * 0.9))
+%         IsCorner(cy, cx) = false;
+%     end
+    if ~(cy-rad >= 1 && cx-rad >= 1 && cy+rad <= img_h && cx+rad <= img_w)
+        IsCorner(cy, cx) = false;
     end
 end
 [y_found, x_found] = find(IsCorner);

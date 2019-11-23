@@ -73,14 +73,17 @@ gauss_window = fspecial( ...
 
 for pt_idx = 1 : k
     pt_pos = [y(pt_idx), x(pt_idx)];
+    
+    window_top = pt_pos - descriptor_window_image_width / 2;
+    window_bottom = window_top + descriptor_window_image_width - 1;
+    window_image = image(...
+        window_top(1):window_bottom(1), window_top(2):window_bottom(2));
     for cell_y = 1 : 4
         for cell_x = 1 : 4
-            % It is guaranteed that [1, 1] <= cell_top and 
-            % cell_bottom <= [img_h, img_w].
-            cell_top = pt_pos + cell_width * [cell_y - 3, cell_x - 3];
+            cell_top = cell_width * [cell_y - 1, cell_x - 1] + 1;
             cell_bottom = cell_top + cell_width - 1;
             
-            [grad_dirs, grad_mags] = get_gradient(image( ...
+            [grad_dirs, grad_mags] = get_gradient(window_image( ...
                 cell_top(1):cell_bottom(1), ...
                 cell_top(2):cell_bottom(2)));
 
@@ -88,13 +91,13 @@ for pt_idx = 1 : k
                 min(max(ceil((grad_dirs + 180) / 45), 1), 8), ...
                 1, numel(grad_dirs));
 
-            gauss_trans = -pt_pos + descriptor_window_image_width / 2 + 1;
-            gauss_top = cell_top + gauss_trans;
-            gauss_bottom = cell_bottom + gauss_trans;
-
+%             gauss_trans = -pt_pos + descriptor_window_image_width / 2 + 1;
+%             gauss_top = cell_top + gauss_trans;
+%             gauss_bottom = cell_bottom + gauss_trans;
+% 
             grad_mags = grad_mags .* gauss_window( ...
-                gauss_top(1):gauss_bottom(1), ...
-                gauss_top(2):gauss_bottom(2));
+                cell_top(1):cell_bottom(1), ...
+                cell_top(2):cell_bottom(2));
             grad_mags = reshape(grad_mags, 1, numel(grad_mags));
 
             cell_idx = 4 * (cell_y - 1) + cell_x;
