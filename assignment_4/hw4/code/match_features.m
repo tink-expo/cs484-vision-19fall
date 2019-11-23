@@ -33,11 +33,16 @@ for i = 1:k
     [min_dist, min_idx] = mink(dist, 2);
     matches(i, :) = [i, min_idx(1)];
     if min_dist(2) == 0
-        confidences(i) = 1;
+        confidences(i) = 0;
     else
         confidences(i) = 1 - min_dist(1) / min_dist(2);
     end
 end
+
+[~, sorted_i] = sort(confidences, 'descend');
+sorted_i = sorted_i(1:100);
+matches = matches(sorted_i, :);
+confidences = confidences(sorted_i);
 
 end
 

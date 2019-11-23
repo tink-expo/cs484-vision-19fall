@@ -63,7 +63,7 @@ Harris = (IxIx .* IyIy - IxIy .* IxIy) - alpha * (IxIx + IyIy) .^ 2;
 threshold = 0.0000045;
 IsCorner = Harris > threshold & islocalmax(Harris) & islocalmax(Harris, 2);
 [y_found, x_found] = find(IsCorner);
-[~, sorted_i_found] = sort(Harris(IsCorner));
+[~, sorted_i_found] = sort(Harris(IsCorner), 'descend');
 
 sorted_i = sorted_i_found(1:3000);
 y = y_found(sorted_i);
