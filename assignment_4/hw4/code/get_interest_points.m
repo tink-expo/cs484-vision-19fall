@@ -16,7 +16,7 @@
 % 'scale' and 'orientation' are nx1 vectors indicating the scale and
 %   orientation of each interest point. These are OPTIONAL. By default you
 %   do not need to make scale and orientation invariant local features.
-function [x, y, confidence, scale, orientation] = get_interest_points(image, descriptor_window_image_width)
+function [x, y, confidence, scale_indices, orientation] = get_interest_points(image, descriptor_window_image_width, scales)
 
 % Implement the Harris corner detector (See Szeliski 4.1.1) to start with.
 % You can create additional interest point detector functions (e.g. MSER)
@@ -48,39 +48,62 @@ Gdx = Gdy';
 Ix = imfilter(image, Gdx, 'conv', 'replicate');
 Iy = imfilter(image, Gdy, 'conv', 'replicate');
 
-sigma_2 = 1;
-IxIx = imgaussfilt(Ix .^ 2, sigma_2, 'Padding', 'replicate');
-IxIy = imgaussfilt(Ix .* Iy, sigma_2, 'Padding', 'replicate');
-IyIy = imgaussfilt(Iy .^ 2, sigma_2, 'Padding', 'replicate');
-
-alpha = 0.05;
-Harris = (IxIx .* IyIy - IxIy .* IxIy) - alpha * (IxIx + IyIy) .^ 2;
+img_c = size(scales, 2);
 
 threshold = 0.0000045;
-IsCorner = Harris > threshold & islocalmax(Harris) & islocalmax(Harris, 2);
-
-[y_found, x_found] = find(IsCorner);
-
-% Adaptive non-maximal suppression.
 rad = 24;
 circle_mask = get_circle_mask(rad);
-for i = 1 : size(y_found, 1)
-    cy = y_found(i);
-    cx = x_found(i);
-    if ~(cy-rad >= 1 && cx-rad >= 1 && cy+rad <= img_h && cx+rad <= img_w && ...
-            all(all( ...
-            image(cy-rad : cy+rad, cx-rad : cx+rad) .* circle_mask) < ...
-            image(cy, cx) * 0.9))
-        IsCorner(cy, cx) = false;
+
+HarrisAll = zeros([img_h, img_w, img_c]);
+HarrisCorner = false([img_h, img_w, img_c]);
+for s = 1 : img_c
+    Harris = get_harris(Ix, Iy, scales(s));
+    IsCorner = Harris > threshold & islocalmax(Harris) & islocalmax(Harris, 2);
+
+    [y_found, x_found] = find(IsCorner);
+
+    % Adaptive non-maximal suppression.
+    for i = 1 : size(y_found, 1)
+        cy = y_found(i);
+        cx = x_found(i);
+        if ~(cy-rad >= 1 && cx-rad >= 1 && cy+rad <= img_h && cx+rad <= img_w && ...
+                all(all( ...
+                Harris(cy-rad : cy+rad, cx-rad : cx+rad) .* circle_mask) < ...
+                Harris(cy, cx) * 0.9))
+            IsCorner(cy, cx) = false;
+        end
     end
+    HarrisAll(:, :, s) = Harris;
+    HarrisCorner(:, :, s) = IsCorner;
 end
-[y_found, x_found] = find(IsCorner);
-[~, sorted_i_found] = sort(Harris(IsCorner), 'descend');
+
+Logs = zeros([img_h, img_w, img_c]);
+for s = 1 : img_c
+    Logs(:, :, s) = get_log(image, scales(s));
+end
+% HarrisCorner = HarrisCorner & islocalmax(Logs, 3);
+i_found = find(HarrisCorner);
+[y_found, x_found, c_found] = ind2sub(size(HarrisCorner), i_found);
+
+HarrisVal = HarrisAll(HarrisCorner);
+[HarrisVal, sorted_i_found] = sort(HarrisVal, 'descend');
 
 % sorted_i = sorted_i_found(1:min(size(y_found, 1), 9000));
 sorted_i = sorted_i_found(1:min(size(sorted_i_found, 1), 3000));
 y = y_found(sorted_i);
 x = x_found(sorted_i);
+scale_indices = c_found(sorted_i);
+confidence = HarrisVal(sorted_i);
+end
+
+function h = get_harris(Ix, Iy, sigma)
+
+IxIx = imgaussfilt(Ix .^ 2, sigma, 'Padding', 'replicate');
+IxIy = imgaussfilt(Ix .* Iy, sigma, 'Padding', 'replicate');
+IyIy = imgaussfilt(Iy .^ 2, sigma, 'Padding', 'replicate');
+
+alpha = 0.05;
+h = (IxIx .* IyIy - IxIy .* IxIy) - alpha * (IxIx + IyIy) .^ 2;
 
 end
 
@@ -96,6 +119,13 @@ for i = 1 : hsize
     end
 end
 h(radius+1, radius+1) = 0;
+
+end
+
+function h = get_log(img, sigma)
+
+log_filt = fspecial('log', 2*ceil(2*sigma)+1, sigma);
+h = sigma * sigma * abs(imfilter(img, log_filt, 'conv', 'replicate'));
 
 end
 
