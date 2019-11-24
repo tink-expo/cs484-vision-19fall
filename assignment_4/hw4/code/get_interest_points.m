@@ -77,11 +77,13 @@ for s = 1 : img_c
     HarrisCorner(:, :, s) = IsCorner;
 end
 
-Logs = zeros([img_h, img_w, img_c]);
-for s = 1 : img_c
-    Logs(:, :, s) = get_log(image, scales(s));
+if img_c >= 3
+    Logs = zeros([img_h, img_w, img_c]);
+    for s = 1 : img_c
+        Logs(:, :, s) = get_log(image, scales(s));
+    end
+    HarrisCorner = HarrisCorner & islocalmax(Logs, 3);
 end
-% HarrisCorner = HarrisCorner & islocalmax(Logs, 3);
 i_found = find(HarrisCorner);
 [y_found, x_found, c_found] = ind2sub(size(HarrisCorner), i_found);
 
@@ -89,7 +91,7 @@ HarrisVal = HarrisAll(HarrisCorner);
 [HarrisVal, sorted_i_found] = sort(HarrisVal, 'descend');
 
 % sorted_i = sorted_i_found(1:min(size(y_found, 1), 9000));
-sorted_i = sorted_i_found(1:min(size(sorted_i_found, 1), 3000));
+sorted_i = sorted_i_found(1:min(size(sorted_i_found, 1), 5000));
 y = y_found(sorted_i);
 x = x_found(sorted_i);
 scale_indices = c_found(sorted_i);

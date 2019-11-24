@@ -16,7 +16,7 @@
 %   following size: [length(x) x feature dimensionality] (e.g. 128 for
 %   standard SIFT)
 
-function [features] = get_features(image, x, y, confidence, scale_indices, window_size, scales)
+function [features] = get_features(image, x, y, scale_indices, window_size, scales)
 
 % To start with, you might want to simply use normalized patches as your
 % local feature. This is very simple to code and works OK. However, to get
@@ -71,7 +71,7 @@ gauss_windows = zeros([window_size, window_size, size(scales, 2)]);
 for i = 1 : size(scales, 2)
     gauss_windows(:, :, i) = ...
         fspecial('gaussian', window_size, ...
-        scales(i) * 8);
+        scales(i) * 1.5);
 end
 
 for pt_idx = 1 : k

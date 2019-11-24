@@ -35,7 +35,7 @@ cheatInterestPoints = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Notre Dame de Paris
 % Easiest
-scales = [1];
+scales = [4];
 
 disp( 'Notre Dame de Paris' );
 image1 = imread('../data/NotreDame/921919841_a30df938f2_o.jpg');
@@ -56,11 +56,11 @@ else
 end
 
 % 2) Create feature descriptors at each interest point. Szeliski 4.1.2
-[image1_features] = get_descriptors(image1, x1, y1, c1, s1, descriptor_window_image_width, scales);
-[image2_features] = get_descriptors(image2, x2, y2, c2, s2, descriptor_window_image_width, scales);
+[image1_features] = get_descriptors(image1, x1, y1, s1, descriptor_window_image_width, scales);
+[image2_features] = get_descriptors(image2, x2, y2, s2, descriptor_window_image_width, scales);
 
 % 3) Match features. Szeliski 4.1.3
-[matches, confidences] = match_features(image1_features, image2_features);
+[matches, confidences] = match_features(image1_features, image2_features, c1, c2);
 
 % Evaluate matches
 [~,~,~,accMPEND] = evaluate_correspondence(image1, image2, eval_file, scale_factor, ... 
@@ -90,11 +90,11 @@ else
 end
 
 % 2) Create feature descriptors at each interest point. Szeliski 4.1.2
-[image1_features] = get_descriptors(image1, x1, y1, c1, s1, descriptor_window_image_width, scales);
-[image2_features] = get_descriptors(image2, x2, y2, c2, s2, descriptor_window_image_width, scales);
+[image1_features] = get_descriptors(image1, x1, y1, s1, descriptor_window_image_width, scales);
+[image2_features] = get_descriptors(image2, x2, y2, s2, descriptor_window_image_width, scales);
 
 % 3) Match features. Szeliski 4.1.3
-[matches, confidences] = match_features(image1_features, image2_features);
+[matches, confidences] = match_features(image1_features, image2_features, c1, c2);
 
 % Evaluate matches
 [~,~,~,accMPEMR] = evaluate_correspondence(image1, image2, eval_file, scale_factor, ... 
@@ -124,11 +124,11 @@ else
 end
 
 % 2) Create feature descriptors at each interest point. Szeliski 4.1.2
-[image1_features] = get_descriptors(image1, x1, y1, c1, s1, descriptor_window_image_width, scales);
-[image2_features] = get_descriptors(image2, x2, y2, c2, s2, descriptor_window_image_width, scales);
+[image1_features] = get_descriptors(image1, x1, y1, s1, descriptor_window_image_width, scales);
+[image2_features] = get_descriptors(image2, x2, y2, s2, descriptor_window_image_width, scales);
 
-% 3) Match feature descriptors. Szeliski 4.1.3
-[matches, confidences] = match_features(image1_features, image2_features);
+% 3) Match features. Szeliski 4.1.3
+[matches, confidences] = match_features(image1_features, image2_features, c1, c2);
 
 % Evaluate matches
 [~,~,~,accMPEEG] = evaluate_correspondence(image1, image2, eval_file, scale_factor, ... 
