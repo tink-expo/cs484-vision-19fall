@@ -35,8 +35,6 @@ cheatInterestPoints = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Notre Dame de Paris
 % Easiest
-scales = [4];
-
 disp( 'Notre Dame de Paris' );
 image1 = imread('../data/NotreDame/921919841_a30df938f2_o.jpg');
 image2 = imread('../data/NotreDame/4191453057_c86028ce1f_o.jpg');
@@ -48,19 +46,19 @@ image2 = im2single( imresize( rgb2gray(image2), scale_factor, 'bilinear') );
 % Task: implement the following three fuctions
 % 1) Find distinctive interest points in each image. Szeliski 4.1.1
 if ~cheatInterestPoints
-    [x1, y1, c1, s1] = get_interest_points(image1, descriptor_window_image_width, scales);
-    [x2, y2, c2, s2] = get_interest_points(image2, descriptor_window_image_width, scales);
+    [x1, y1, c1, si1] = get_interest_points(image1, descriptor_window_image_width);
+    [x2, y2, c2, si2, scales] = get_interest_points(image2, descriptor_window_image_width);
 else
     % Use cheat_interest_points only for development and debugging!
     [x1, y1, x2, y2] = cheat_interest_points(eval_file, scale_factor, image1, image2, descriptor_window_image_width);
 end
 
 % 2) Create feature descriptors at each interest point. Szeliski 4.1.2
-[image1_features] = get_descriptors(image1, x1, y1, s1, descriptor_window_image_width, scales);
-[image2_features] = get_descriptors(image2, x2, y2, s2, descriptor_window_image_width, scales);
+[image1_features] = get_descriptors(image1, x1, y1, si1, descriptor_window_image_width, scales);
+[image2_features] = get_descriptors(image2, x2, y2, si2, descriptor_window_image_width, scales);
 
 % 3) Match features. Szeliski 4.1.3
-[matches, confidences] = match_features(image1_features, image2_features, c1, c2);
+[matches, confidences] = match_features(image1_features, image2_features);
 
 % Evaluate matches
 [~,~,~,accMPEND] = evaluate_correspondence(image1, image2, eval_file, scale_factor, ... 
@@ -82,19 +80,19 @@ image2 = im2single( imresize( rgb2gray(image2), scale_factor, 'bilinear') );
 % Task: implement the following three fuctions
 % 1) Find distinctive interest points in each image. Szeliski 4.1.1
 if ~cheatInterestPoints
-    [x1, y1, c1, s1] = get_interest_points(image1, descriptor_window_image_width, scales);
-    [x2, y2, c2, s2] = get_interest_points(image2, descriptor_window_image_width, scales);
+    [x1, y1, c1, si1] = get_interest_points(image1, descriptor_window_image_width, scales);
+    [x2, y2, c2, si2] = get_interest_points(image2, descriptor_window_image_width, scales);
 else
     % Use cheat_interest_points only for development and debugging!
     [x1, y1, x2, y2] = cheat_interest_points(eval_file, scale_factor, image1, image2, descriptor_window_image_width);
 end
 
 % 2) Create feature descriptors at each interest point. Szeliski 4.1.2
-[image1_features] = get_descriptors(image1, x1, y1, s1, descriptor_window_image_width, scales);
-[image2_features] = get_descriptors(image2, x2, y2, s2, descriptor_window_image_width, scales);
+[image1_features] = get_descriptors(image1, x1, y1, si1, descriptor_window_image_width, scales);
+[image2_features] = get_descriptors(image2, x2, y2, si2, descriptor_window_image_width, scales);
 
 % 3) Match features. Szeliski 4.1.3
-[matches, confidences] = match_features(image1_features, image2_features, c1, c2);
+[matches, confidences] = match_features(image1_features, image2_features);
 
 % Evaluate matches
 [~,~,~,accMPEMR] = evaluate_correspondence(image1, image2, eval_file, scale_factor, ... 
@@ -116,19 +114,19 @@ image2 = im2single( imresize( rgb2gray(image2), scale_factor, 'bilinear') );
 % Task: implement the following three fuctions
 % 1) Find distinctive interest points in each image. Szeliski 4.1.1
 if ~cheatInterestPoints
-    [x1, y1, c1, s1] = get_interest_points(image1, descriptor_window_image_width, scales);
-    [x2, y2, c2, s2] = get_interest_points(image2, descriptor_window_image_width, scales);
+    [x1, y1, c1, si1] = get_interest_points(image1, descriptor_window_image_width, scales);
+    [x2, y2, c2, si2] = get_interest_points(image2, descriptor_window_image_width, scales);
 else
     % Use cheat_interest_points only for development and debugging!
     [x1, y1, x2, y2] = cheat_interest_points(eval_file, scale_factor, image1, image2, descriptor_window_image_width);
 end
 
 % 2) Create feature descriptors at each interest point. Szeliski 4.1.2
-[image1_features] = get_descriptors(image1, x1, y1, s1, descriptor_window_image_width, scales);
-[image2_features] = get_descriptors(image2, x2, y2, s2, descriptor_window_image_width, scales);
+[image1_features] = get_descriptors(image1, x1, y1, si1, descriptor_window_image_width, scales);
+[image2_features] = get_descriptors(image2, x2, y2, si2, descriptor_window_image_width, scales);
 
 % 3) Match features. Szeliski 4.1.3
-[matches, confidences] = match_features(image1_features, image2_features, c1, c2);
+[matches, confidences] = match_features(image1_features, image2_features);
 
 % Evaluate matches
 [~,~,~,accMPEEG] = evaluate_correspondence(image1, image2, eval_file, scale_factor, ... 

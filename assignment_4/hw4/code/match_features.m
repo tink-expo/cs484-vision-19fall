@@ -21,7 +21,7 @@
 %
 % 'confidences' is a k x 1 matrix with a real valued confidence for every match.
 
-function [matches, confidences] = match_features(features1, features2, c1, c2)
+function [matches, confidences] = match_features(features1, features2)
 
 k = size(features1, 1);
 matches = zeros(k, 2);

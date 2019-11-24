@@ -16,7 +16,7 @@
 % 'scale' and 'orientation' are nx1 vectors indicating the scale and
 %   orientation of each interest point. These are OPTIONAL. By default you
 %   do not need to make scale and orientation invariant local features.
-function [x, y, confidence, scale_indices, orientation] = get_interest_points(image, descriptor_window_image_width, scales)
+function [x, y, confidence, scale_indices, scales, orientation] = get_interest_points(image, descriptor_window_image_width, scales)
 
 % Implement the Harris corner detector (See Szeliski 4.1.1) to start with.
 % You can create additional interest point detector functions (e.g. MSER)
@@ -42,22 +42,23 @@ function [x, y, confidence, scale_indices, orientation] = get_interest_points(im
 % - Notre Dame: ~1300 and ~1700
 % - Mount Rushmore: ~3500 and ~4500
 % - Episcopal Gaudi: ~1000 and ~9000
-[img_h, img_w] = size(image);
-Gdy = fspecial('sobel');
-Gdx = Gdy';
-Ix = imfilter(image, Gdx, 'conv', 'replicate');
-Iy = imfilter(image, Gdy, 'conv', 'replicate');
 
+[img_h, img_w] = size(image);
+
+scales = zeros(1, 7);
+for s = 1 : size(scales, 2)
+    scales(s) = 1.5 * (1.4 ^ (s - 1));
+end
 img_c = size(scales, 2);
 
-threshold = 0.0000045;
+threshold = 0.000045;
 rad = 24;
 circle_mask = get_circle_mask(rad);
 
 HarrisAll = zeros([img_h, img_w, img_c]);
 HarrisCorner = false([img_h, img_w, img_c]);
 for s = 1 : img_c
-    Harris = get_harris(Ix, Iy, scales(s));
+    Harris = get_harris(image, scales(s));
     IsCorner = Harris > threshold & islocalmax(Harris) & islocalmax(Harris, 2);
 
     [y_found, x_found] = find(IsCorner);
@@ -82,7 +83,7 @@ if img_c >= 3
     for s = 1 : img_c
         Logs(:, :, s) = get_log(image, scales(s));
     end
-    HarrisCorner = HarrisCorner & islocalmax(Logs, 3);
+    % HarrisCorner = HarrisCorner & islocalmax(Logs, 3);
 end
 i_found = find(HarrisCorner);
 [y_found, x_found, c_found] = ind2sub(size(HarrisCorner), i_found);
@@ -90,22 +91,37 @@ i_found = find(HarrisCorner);
 HarrisVal = HarrisAll(HarrisCorner);
 [HarrisVal, sorted_i_found] = sort(HarrisVal, 'descend');
 
-% sorted_i = sorted_i_found(1:min(size(y_found, 1), 9000));
-sorted_i = sorted_i_found(1:min(size(sorted_i_found, 1), 5000));
+sorted_i = sorted_i_found(1:min(size(sorted_i_found, 1), 9000));
 y = y_found(sorted_i);
 x = x_found(sorted_i);
 scale_indices = c_found(sorted_i);
 confidence = HarrisVal(sorted_i);
 end
 
-function h = get_harris(Ix, Iy, sigma)
+function h = get_harris(image, sigma)
 
-IxIx = imgaussfilt(Ix .^ 2, sigma, 'Padding', 'replicate');
-IxIy = imgaussfilt(Ix .* Iy, sigma, 'Padding', 'replicate');
-IyIy = imgaussfilt(Iy .^ 2, sigma, 'Padding', 'replicate');
+sigma_d = sigma * 0.7;
+sigma_i = sigma;
+
+% G1 = fspecial('gaussian', 2*ceil(2*sigma_d)+1, sigma_d);
+% [Gdx, Gdy] = gradient(G1);
+% Ix = imfilter(image, Gdx, 'conv', 'replicate');
+% Iy = imfilter(image, Gdy, 'conv', 'replicate');
+
+Gd = fspecial('gaussian', 2*ceil(2*sigma_d)+1, sigma_d);
+g_image = imfilter(image, Gd, 'replicate');
+dy = fspecial('prewitt');
+dx = dy';
+Ix = imfilter(g_image, dy, 'conv', 'replicate');
+Iy = imfilter(g_image, dx, 'conv', 'replicate');
+
+IxIx = imgaussfilt(Ix .^ 2, sigma_i, 'Padding', 'replicate');
+IxIy = imgaussfilt(Ix .* Iy, sigma_i, 'Padding', 'replicate');
+IyIy = imgaussfilt(Iy .^ 2, sigma_i, 'Padding', 'replicate');
 
 alpha = 0.05;
 h = (IxIx .* IyIy - IxIy .* IxIy) - alpha * (IxIx + IyIy) .^ 2;
+h = (sigma_d ^ 2) * h;
 
 end
 

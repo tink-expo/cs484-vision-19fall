@@ -22,15 +22,4 @@
 % IF = I(1:2)
 % yf = y(IF)
 % xf = x(IF)
-a = [7, 2, 11, 0]';
-b = [5, 6, 9, 8]';
-c = cat(1, a, b)
-d = sort(c, 'descend')
-lim = d(4)
-
-ka = [1, 2; 3, 4; 5, 6; 7, 8];
-kb = [1, 2; 3, 4; 5, 6; 7, 8];
-ka = ka(a >= lim, :)
-kb = kb(b >= lim, :)
-
-size([1, 2, 3])
+a = 5e2
