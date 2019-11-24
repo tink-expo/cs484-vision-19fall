@@ -110,32 +110,7 @@ for pt_idx = 1 : k
                     + mags_cell(i);
             end
         end
-        
-        % Rotation estimation:
-        % Normalize rotation so that the most dominent rotation is always 
-        % histogram 1.
-%         [~, i_dominent] = max(feature_stacked);
-%         if i_dominent ~= 1
-%             for cell_idx = 1 : 16
-%                 s_idx = (cell_idx - 1) * 8 + 1;
-%                 e_idx = s_idx + 8 - 1;
-%                 feature_cell = features(pt_idx, s_idx : e_idx);
-%                 feature_cell = ...
-%                     [feature_cell(i_dominent:end) feature_cell(1:i_dominent-1)];
-%                 features(pt_idx, s_idx : e_idx) = feature_cell;
-%             end
-%         end
     end
-    
-%     % Rotation estimation:
-%     % Normalize rotation so that the most dominent rotation is always histogram
-%     % 1.
-%     feature = features(pt_idx, :);
-%     [~, i_dominent] = max(feature);
-%     if i_dominent ~= 1
-%         feature = [feature(i_dominent:end) feature(1:i_dominent-1)];
-%     end
-%     features(pt_idx, :) = feature;
 end
 features = features .^ 0.7;
 features = normalize(features', 'norm', 1)';

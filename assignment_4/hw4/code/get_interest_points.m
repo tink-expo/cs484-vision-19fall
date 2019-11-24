@@ -103,11 +103,6 @@ function h = get_harris(image, sigma)
 sigma_d = sigma * 0.7;
 sigma_i = sigma;
 
-% G1 = fspecial('gaussian', 2*ceil(2*sigma_d)+1, sigma_d);
-% [Gdx, Gdy] = gradient(G1);
-% Ix = imfilter(image, Gdx, 'conv', 'replicate');
-% Iy = imfilter(image, Gdy, 'conv', 'replicate');
-
 Gd = fspecial('gaussian', 2*ceil(2*sigma_d)+1, sigma_d);
 g_image = imfilter(image, Gd, 'replicate');
 dy = fspecial('prewitt');
