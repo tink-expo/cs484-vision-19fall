@@ -69,7 +69,7 @@ features = zeros(k, 128);
 cell_width = descriptor_window_image_width / 4;
 gauss_window = fspecial( ...
     'gaussian', descriptor_window_image_width, ...
-    descriptor_window_image_width / 2);
+    8);
 
 for pt_idx = 1 : k
     pt_pos = [y(pt_idx), x(pt_idx)];
@@ -78,34 +78,32 @@ for pt_idx = 1 : k
     window_bottom = window_top + descriptor_window_image_width - 1;
     window_image = image(...
         window_top(1):window_bottom(1), window_top(2):window_bottom(2));
+    [dirs, mags] = get_gradient(window_image);
+    dirs = min(max(ceil((dirs + 180) / 45), 1), 8);
     for cell_y = 1 : 4
         for cell_x = 1 : 4
             cell_top = cell_width * [cell_y - 1, cell_x - 1] + 1;
             cell_bottom = cell_top + cell_width - 1;
             
-            [grad_dirs, grad_mags] = get_gradient(window_image( ...
-                cell_top(1):cell_bottom(1), ...
-                cell_top(2):cell_bottom(2)));
-
-            grad_dirs = reshape( ...
-                min(max(ceil((grad_dirs + 180) / 45), 1), 8), ...
-                1, numel(grad_dirs));
-
-%             gauss_trans = -pt_pos + descriptor_window_image_width / 2 + 1;
-%             gauss_top = cell_top + gauss_trans;
-%             gauss_bottom = cell_bottom + gauss_trans;
-% 
-            grad_mags = grad_mags .* gauss_window( ...
+            dirs_cell = dirs( ...
                 cell_top(1):cell_bottom(1), ...
                 cell_top(2):cell_bottom(2));
-            grad_mags = reshape(grad_mags, 1, numel(grad_mags));
+            dirs_cell = reshape(dirs_cell, 1, numel(dirs_cell));
+            
+            mags_cell = mags( ...
+                cell_top(1):cell_bottom(1), ...
+                cell_top(2):cell_bottom(2));
+            mags_cell = mags_cell .* gauss_window( ...
+                cell_top(1):cell_bottom(1), ...
+                cell_top(2):cell_bottom(2));
+            mags_cell = reshape(mags_cell, 1, numel(mags_cell));
 
             cell_idx = 4 * (cell_y - 1) + cell_x;
             feature_cell_start = (cell_idx - 1) * 8;
-            for i = 1 : numel(grad_dirs)
-                features(pt_idx, feature_cell_start + grad_dirs(i)) = ...
-                    features(pt_idx, feature_cell_start + grad_dirs(i)) ...
-                    + grad_mags(i);
+            for i = 1 : numel(dirs_cell)
+                features(pt_idx, feature_cell_start + dirs_cell(i)) = ...
+                    features(pt_idx, feature_cell_start + dirs_cell(i)) ...
+                    + mags_cell(i);
             end
         end
         

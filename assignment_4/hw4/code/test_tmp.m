@@ -23,11 +23,5 @@
 % yf = y(IF)
 % xf = x(IF)
 
-inds = [1, 3, 5];
-adds = [0.1, 0.2, 0.3];
-a = [1, 1, 1, 1, 1];
-a(inds) = a(inds) + adds;
-size(inds)
-size(adds)
-size(a)
-a
+a = [1, 1, 3; 0, 0, 0; 1, 2, 0];
+b = bwconncomp(a)

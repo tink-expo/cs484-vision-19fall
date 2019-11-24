@@ -36,10 +36,6 @@ function [x, y, confidence, scale, orientation] = get_interest_points(image, des
 % could use this to ensure that every interest point is at a local maximum
 % of cornerness.
 
-% Placeholder that you can delete -- random points
-% x = ceil(rand(500,1) * size(image,2));
-% y = ceil(rand(500,1) * size(image,1));
-
 
 % After computing interest points, here's roughly how many we return
 % For each of the three image pairs
@@ -71,13 +67,10 @@ circle_mask = get_circle_mask(rad);
 for i = 1 : size(y_found, 1)
     cy = y_found(i);
     cx = x_found(i);
-%     if ~(cy-rad >= 1 && cx-rad >= 1 && cy+rad <= img_h && cx+rad <= img_w && ...
-%             all(all( ...
-%             image(cy-rad : cy+rad, cx-rad : cx+rad) .* circle_mask) < ...
-%             image(cy, cx) * 0.9))
-%         IsCorner(cy, cx) = false;
-%     end
-    if ~(cy-rad >= 1 && cx-rad >= 1 && cy+rad <= img_h && cx+rad <= img_w)
+    if ~(cy-rad >= 1 && cx-rad >= 1 && cy+rad <= img_h && cx+rad <= img_w && ...
+            all(all( ...
+            image(cy-rad : cy+rad, cx-rad : cx+rad) .* circle_mask) < ...
+            image(cy, cx) * 0.9))
         IsCorner(cy, cx) = false;
     end
 end
