@@ -40,7 +40,7 @@ for i = 1:k
 end
 
 [~, sorted_i] = sort(confidences, 'descend');
-sorted_i = sorted_i(1:100);
+sorted_i = sorted_i(1:min(100, size(sorted_i)));
 matches = matches(sorted_i, :);
 confidences = confidences(sorted_i);
 

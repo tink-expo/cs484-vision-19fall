@@ -44,9 +44,9 @@ function [x, y, confidence, scale_indices, scale, orientation] = get_interest_po
 
 [img_h, img_w] = size(image);
 
-scale = zeros(1, 7);
+scale = zeros(1, 5);
 for s = 1 : size(scale, 2)
-    scale(s) = 1.5 * (1.4 ^ (s - 1));
+    scale(s) = 0.75 * (1.4 ^ (s - 1));
 end
 
 img_c = size(scale, 2);
@@ -83,7 +83,7 @@ if img_c >= 3
     for s = 1 : img_c
         Logs(:, :, s) = get_log(image, scale(s));
     end
-    % HarrisCorner = HarrisCorner & islocalmax(Logs, 3);
+    HarrisCorner = HarrisCorner & islocalmax(Logs, 3);
 end
 i_found = find(HarrisCorner);
 [y_found, x_found, c_found] = ind2sub(size(HarrisCorner), i_found);

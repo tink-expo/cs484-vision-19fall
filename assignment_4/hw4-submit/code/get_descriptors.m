@@ -68,7 +68,7 @@ gauss_windows = zeros([descriptor_window_image_width, descriptor_window_image_wi
 for i = 1 : size(scales, 2)
     gauss_windows(:, :, i) = ...
         fspecial('gaussian', descriptor_window_image_width, ...
-        scales(i) * 1.5);
+        scales(i) * 8);
 end
 
 for pt_idx = 1 : k
