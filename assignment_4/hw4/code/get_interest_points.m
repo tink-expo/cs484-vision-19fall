@@ -49,6 +49,7 @@ scales = zeros(1, 7);
 for s = 1 : size(scales, 2)
     scales(s) = 1.5 * (1.4 ^ (s - 1));
 end
+
 img_c = size(scales, 2);
 
 threshold = 0.000045;

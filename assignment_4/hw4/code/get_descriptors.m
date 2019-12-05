@@ -16,7 +16,7 @@
 %   following size: [length(x) x feature dimensionality] (e.g. 128 for
 %   standard SIFT)
 
-function [features] = get_features(image, x, y, scale_indices, window_size, scales)
+function [features] = get_features(image, x, y, scale_indices, descriptor_window_image_width, scales)
 
 % To start with, you might want to simply use normalized patches as your
 % local feature. This is very simple to code and works OK. However, to get
@@ -57,7 +57,7 @@ function [features] = get_features(image, x, y, scale_indices, window_size, scal
 % Placeholder that you can delete. Empty features.
 % features = zeros(size(x,1), 128, 'single');
 
-if mod(window_size, 4) ~= 0
+if mod(descriptor_window_image_width, 4) ~= 0
     return
 end
 
@@ -66,19 +66,19 @@ end
 k = size(x, 1);
 features = zeros(k, 128);
 
-cell_width = window_size / 4;
-gauss_windows = zeros([window_size, window_size, size(scales, 2)]);
+cell_width = descriptor_window_image_width / 4;
+gauss_windows = zeros([descriptor_window_image_width, descriptor_window_image_width, size(scales, 2)]);
 for i = 1 : size(scales, 2)
     gauss_windows(:, :, i) = ...
-        fspecial('gaussian', window_size, ...
+        fspecial('gaussian', descriptor_window_image_width, ...
         scales(i) * 1.5);
 end
 
 for pt_idx = 1 : k
     pt_pos = [y(pt_idx), x(pt_idx)];
     
-    window_top = pt_pos - window_size / 2;
-    window_bottom = window_top + window_size - 1;
+    window_top = pt_pos - descriptor_window_image_width / 2;
+    window_bottom = window_top + descriptor_window_image_width - 1;
     window_image = image(...
         window_top(1):window_bottom(1), window_top(2):window_bottom(2));
     [dirs, mags] = get_gradient(window_image);
