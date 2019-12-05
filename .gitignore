@@ -4,4 +4,6 @@
 !README.md
 
 **/.DS_Store
-!**/.m
+!**.m
+!**.tex
+!**.pdf
