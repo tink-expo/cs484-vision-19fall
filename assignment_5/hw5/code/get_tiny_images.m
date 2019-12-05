@@ -31,7 +31,21 @@ function image_feats = get_tiny_images(image_paths)
 %   variance of feature). This retains that signal, and just shifts
 %   the feature space into an easier number space on which to learn.
 
-
-
 % Suggested functions: imread, imresize
+
+n = size(image_paths, 1);
+image_feats = zeros(n, 16 * 16);
+for i = 1 : n
+    img = im2double(imread(image_paths{i}));
+    
+    % To tiny img.
+    img = imresize(img, [16, 16]);
+    img = reshape(img, [1, 16 * 16]);
+    
+    % zero mean and unit length.
+    img = img - mean(img);
+    img = img / norm(img);
+    
+    image_feats(i, :) = img;
+end
 

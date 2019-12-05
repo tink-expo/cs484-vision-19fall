@@ -23,6 +23,35 @@ function predicted_categories = nearest_neighbor_classify(train_image_feats, tra
 %   [Y,I] = SORT(X) if you're going to be reasoning about many nearest
 %   neighbors 
 
+m = size(test_image_feats, 1);
+predicted_categories = cell(m, 1);
+
+k = 3; % Best among 1, 3, 5
+for i = 1 : m
+    diffs = train_image_feats - test_image_feats(i, :);
+    diffs = vecnorm(diffs');
+    [~, inds] = mink(diffs, k, 2);
+    predicted_categories{i} = get_voted_label(inds, train_labels);
+end
+
+end
+
+function max_label = get_voted_label(inds, train_labels)
+
+k = size(inds, 2);
+found_labels = cell(k, 1);
+for i = 1 : k
+    found_labels{i} = train_labels{inds(i)};
+end
+votes = zeros(k, 1);
+for i = 1 : k
+    votes(i) = nnz(strcmp(found_labels{i}, found_labels));
+end
+[~, vote_ind] = max(votes);
+max_label = found_labels{vote_ind};
+
+end
+
 
 
 

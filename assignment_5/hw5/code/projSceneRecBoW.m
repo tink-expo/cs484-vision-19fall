@@ -50,13 +50,13 @@ function projSceneRecBoW()
 
 %% Step 0: Set up parameters, vlfeat, category list, and image paths.
 
-% FEATURE = 'tiny image';
+FEATURE = 'tiny image';
 % FEATURE = 'bag of words';
-FEATURE = 'placeholder';
+% FEATURE = 'placeholder';
 
-% CLASSIFIER = 'nearest neighbor';
+CLASSIFIER = 'nearest neighbor';
 % CLASSIFIER = 'support vector machine';
-CLASSIFIER = 'placeholder';
+% CLASSIFIER = 'placeholder';
 
 data_path = '../data/'; 
 
@@ -155,7 +155,7 @@ switch lower(CLASSIFIER)
     case 'placeholder'
         %The placeholder classifier simply predicts a random category for every test case
         random_permutation = randperm(length(test_labels));
-        predicted_categories = test_labels(random_permutation); 
+        predicted_categories = test_labels(random_permutation);
         
     otherwise
         error('Unknown classifier type')
