@@ -1,0 +1,333 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% CS484 Written Question Template
+%
+% Acknowledgements:
+% The original code is written by Prof. James Tompkin (james_tompkin@brown.edu).
+% The second version is revised by Prof. Min H. Kim (minhkim@kaist.ac.kr).
+%
+% This is a LaTeX document. LaTeX is a markup language for producing 
+% documents. Your task is to fill out this document, then to compile 
+% it into a PDF document. 
+%
+% 
+% TO COMPILE:
+% > pdflatex thisfile.tex
+%
+% If you do not have LaTeX and need a LaTeX distribution:
+% - Personal laptops (all common OS): www.latex-project.org/get/
+% - We recommend latex compiler miktex (https://miktex.org/) for windows,
+%   macTex (http://www.tug.org/mactex/) for macOS users.
+%   And TeXstudio(http://www.texstudio.org/) for latex editor.
+%   You should install both compiler and editor for editing latex.
+%   The another option is Overleaf (https://www.overleaf.com/) which is 
+%   an online latex editor.
+%
+% If you need help with LaTeX, please come to office hours. 
+% Or, there is plenty of help online:
+% https://en.wikibooks.org/wiki/LaTeX
+%
+% Good luck!
+% Min and the CS484 staff
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% How to include two graphics on the same line:
+% 
+% \includegraphics[width=0.49\linewidth]{yourgraphic1.png}
+% \includegraphics[width=0.49\linewidth]{yourgraphic2.png}
+%
+% How to include equations:
+%
+% \begin{equation}
+% y = mx+c
+% \end{equation}
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[11pt]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks = true,
+            linkcolor = blue,
+            urlcolor  = blue]{hyperref}
+\usepackage[a4paper,margin=1.5in]{geometry}
+\usepackage{stackengine,graphicx}
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\usepackage{microtype}
+\usepackage{times}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{float}
+
+% From https://ctan.org/pkg/matlab-prettifier
+\usepackage[numbered,framed]{matlab-prettifier}
+
+\frenchspacing
+\setlength{\parindent}{0cm} % Default is 15pt.
+\setlength{\parskip}{0.3cm plus1mm minus1mm}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Homework Writeup}
+\rhead{CS484}
+\rfoot{\thepage}
+
+\date{}
+
+\title{\vspace{-1cm}Homework 4 Writeup}
+
+
+\begin{document}
+\maketitle
+\vspace{-3cm}
+\thispagestyle{fancy}
+
+\section*{Instructions}
+\begin{itemize}
+  \item Describe any interesting decisions you made to write your algorithm.
+  \item Show and discuss the results of your algorithm.
+  \item Feel free to include code snippets, images, and equations.
+  \item Use as many pages as you need, but err on the short side If you feel you only need to write a short amount to meet the brief, th
+  
+  \item \textbf{Please make this document anonymous.}
+\end{itemize}
+
+\lstset{style=Matlab-editor}
+
+\textbf{[NOTE]} \\
+I changed the function template of \lstinline{get_interest_points()} and \lstinline{match_features}. I added return value and parameters. For this reason, my code also has modification in \lstinline{ProjLF.m} file as well, so please use the submitted \lstinline{ProjLF.m}. The reason of change is described in the writeup document.
+
+\section*{Matching}
+\lstinline{match_features}
+
+I used euclidean distance as a metric to define distance between two features. For each points in \lstinline{features1}, I calculated distance between all points in \lstinline{features2}, and find min distance and second min distance. \\ 
+After the calculation end for all \lstinline{features1}, sort in descending order of \\ $1 - (min\ distance) / (second\ min\ distance)$, and using the corresponding matches at the front part of the sorted result automatically gives the points with large value of $1 - (min\ distance) / (second\ min\ distance)$ - i.e. small value of nearest neighbor distance ratio. So this gives the result of applying "nearest neighbor distance ratio test" to matches. \\
+After implemeting matching, the accuracy was still near 0\%.
+
+\section*{Description}
+\lstinline{get_descriptors}
+
+\textbf{[NOTE]} I changed the function \lstinline{match_features}'s template - I added \lstinline{scale_indices} and \lstinline{scales} parameter. The reason why I added them separately is described in extra credit section.
+
+\textbf{1. 16$\times$16 intensity patches} \\
+Initially, I used 16$\times$16 = 256 dimensional vector, which is simply normalization of image patch surrounding the point. \\
+Using this simple descriptor resulted in accuracy of 40\% on the Notre Dame, 25\% on Mount Rushmore, and 9\% on Episcopal Gaudi with \lstinline{cheat_interest_points} set to true.
+
+\textbf{2. SIFT like descriptors} \\
+Next, I implemented SIFT like descriptors.
+After calculating the gradient of the image using \lstinline{get_gradient()} that I implemented as an alternative of MATLAB \lstinline{gradient()}, I quantized the direction into 8 steps to determine which bin of \lstinline{features} to put magnitude weighted by a gaussian window.
+\begin{lstlisting}
+for pt_idx = 1 : k
+    pt_pos = [y(pt_idx), x(pt_idx)];
+    
+    window_top = pt_pos - descriptor_window_image_width / 2;
+    window_bottom = window_top + descriptor_window_image_width - 1;
+    window_image = image(...
+        window_top(1):window_bottom(1), window_top(2):window_bottom(2));
+    [dirs, mags] = get_gradient(window_image);
+    dirs = min(max(ceil((dirs + 180) / 45), 1), 8);
+    for cell_y = 1 : 4
+        for cell_x = 1 : 4
+            cell_top = cell_width * [cell_y - 1, cell_x - 1] + 1;
+            cell_bottom = cell_top + cell_width - 1;
+            
+            dirs_cell = dirs( ...
+                cell_top(1):cell_bottom(1), ...
+                cell_top(2):cell_bottom(2));
+            dirs_cell = reshape(dirs_cell, 1, numel(dirs_cell));
+            
+            mags_cell = mags( ...
+                cell_top(1):cell_bottom(1), ...
+                cell_top(2):cell_bottom(2));
+            mags_cell = mags_cell .* gauss_window( ...
+                cell_top(1):cell_bottom(1), ...
+                cell_top(2):cell_bottom(2));
+            mags_cell = reshape(mags_cell, 1, numel(mags_cell));
+
+            cell_idx = 4 * (cell_y - 1) + cell_x;
+            feature_cell_start = (cell_idx - 1) * 8;
+            for i = 1 : numel(dirs_cell)
+                features(pt_idx, feature_cell_start + dirs_cell(i)) = ...
+                    features(pt_idx, feature_cell_start + dirs_cell(i)) ...
+                    + mags_cell(i);
+            end
+        end
+    end
+end
+\end{lstlisting}
+Then, I normalized the features, clamped to threshold 0.2, and then normalized again. \\
+Using SIFT like descriptor resulted in accuracy of 61\% on the Notre Dame, 32\% on Mount Rushmore, and 10\% on Episcopal Gaudi with \lstinline{cheat_interest_points} set to true.
+
+\section*{Detection}
+\lstinline{get_interest_points}
+
+\textbf{[NOTE]} I changed the function \lstinline{get_interest_points}'s template - I added \lstinline{scale_indices} to the return value of this function. The reason I added it additional to \lstinline{scales} is described in extra credit section.
+
+First, I implemented a function \lstinline{get_harris()} to calculate Harris corner detector for each point in image.
+\begin{lstlisting}
+function h = get_harris(image, sigma)
+    
+sigma_d = sigma * 0.7;
+sigma_i = sigma;
+
+Gd = fspecial('gaussian', 2*ceil(2*sigma_d)+1, sigma_d);
+g_image = imfilter(image, Gd, 'replicate');
+dy = fspecial('prewitt');
+dx = dy';
+Ix = imfilter(g_image, dy, 'conv', 'replicate');
+Iy = imfilter(g_image, dx, 'conv', 'replicate');
+
+IxIx = imgaussfilt(Ix .^ 2, sigma_i, 'Padding', 'replicate');
+IxIy = imgaussfilt(Ix .* Iy, sigma_i, 'Padding', 'replicate');
+IyIy = imgaussfilt(Iy .^ 2, sigma_i, 'Padding', 'replicate');
+
+alpha = 0.05;
+h = (IxIx .* IyIy - IxIy .* IxIy) - alpha * (IxIx + IyIy) .^ 2;
+h = (sigma_d ^ 2) * h;
+
+end
+\end{lstlisting}
+
+Then, I selected the interest points using the code below - points whose Harris result is local maxima above a certain threshold.
+\begin{lstlisting}
+threshold = 0.0000045;
+Harris = get_harris(image, 1);
+IsCorner = Harris > threshold & islocalmax(Harris) & islocalmax(Harris, 2);
+[y_found, x_found] = find(IsCorner);
+[~, sorted_i_found] = sort(Harris(IsCorner));
+
+sorted_i = sorted_i_found(1:3000);
+y = y_found(sorted_i);
+x = x_found(sorted_i);
+\end{lstlisting}
+I eliminated the points that are close to image boundary regarding the size of \lstinline{descriptor_window_image_width}. The eliminating part is omitted in the code snippet above. \\
+Since now that the detection is implemented, I tested with \lstinline{cheat_interest_points} set to false, and resulted in accuracy of 93\% on the Notre Dame, 94\% on Mount Rushmore, and 6\% on Episcopal Gaudi.
+
+\section*{Extra Credit - Adaptive non-maximum suppression}
+Below code shows my implementation of addaptive non-maximum suppression.
+It checks if all the points in the circle of radius 24 surrounding the point has value smaller than 0.9 * (center point's value). Instead of checking only the surrounding points identified as corner by Harris (locla maxima above threshold) using \lstinline{bwconncomp}, my code redundantly checks all the surrounding points that lies in the radius. This could be optimized, but using vectorization, this part of the code didn't take long time, so I just did as below for simple implementation.
+\begin{lstlisting}
+rad = 24;
+circle_mask = get_circle_mask(rad);
+
+for i = 1 : size(y_found, 1)
+    cy = y_found(i);
+    cx = x_found(i);
+    if ~(cy-rad >= 1 && cx-rad >= 1 && cy+rad <= img_h && cx+rad <= img_w && ...
+            all(all( ...
+            Harris(cy-rad : cy+rad, cx-rad : cx+rad) .* circle_mask) < ...
+            Harris(cy, cx) * 0.9))
+        IsCorner(cy, cx) = false;
+    end
+end
+
+function h = get_circle_mask(radius)
+hsize = radius * 2 + 1;
+h = zeros(hsize);
+for i = 1 : hsize
+    for j = 1 : hsize
+        if hypot(i - (radius+1), j - (radius+1)) <= radius
+            h(i, j) = 1;
+        end
+    end
+end
+h(radius+1, radius+1) = 0;
+end
+\end{lstlisting}
+Applying non-maximum suppression resulted in accuracy of 97\% on the Notre Dame, 98\% on Mount Rushmore, and 12\% on Episcopal Gaudi.
+
+\section*{Extra Credit - Scale selection to pick the best scale in detection}
+
+In order to pick the best scale, I first made a scale space and stored in \lstinline{scale}.
+\begin{lstlisting}
+scale = zeros(1, 5);
+for s = 1 : size(scale, 2)
+    scale(s) = 0.75 * (1.4 ^ (s - 1));
+end
+\end{lstlisting}
+Then I calculated Harris detector and stored it in \lstinline{[img_h, img_w, img_c]} size image, where \lstinline{img_c} is the dimension of the scale space. For each scale, the Harris calculation differed by passing different argument for sigma like below.
+\begin{lstlisting}
+for s = 1 : img_c
+    Harris = get_harris(image, scale(s));
+    % ... omitted ...
+    HarrisAll(:, :, s) = Harris;
+    HarrisCorner(:, :, s) = IsCorner;
+end
+\end{lstlisting}
+Then, I picked the scale by examining which scale makes local maxima like below.
+\begin{lstlisting}
+% ...
+Logs = zeros([img_h, img_w, img_c]);
+for s = 1 : img_c
+    Logs(:, :, s) = get_log(image, scale(s));
+end
+HarrisCorner = HarrisCorner & islocalmax(Logs, 3);
+% ...
+
+function h = get_log(img, sigma)
+log_filt = fspecial('log', 2*ceil(2*sigma)+1, sigma);
+h = sigma * sigma * abs(imfilter(img, log_filt, 'conv', 'replicate'));
+end
+\end{lstlisting}
+\textbf{[NOTE]} The reason I added \lstinline{scale_indices} to return values of \lstinline{get_interest_points()}: \\
+Let's denote the number of detected interest point as k.
+As shown in the code below, Instead of storing scale in k-dimensional \lstinline{scale}, I used \lstinline{scale} as 5-dimensional vector to store the scale space I used, and for each k points, I stored index of \lstinline{scale} to k-dimensional \lstinline{scale_indices}. The reason I chose this way is described in the next section.
+\begin{lstlisting}
+i_found = find(HarrisCorner);
+[y_found, x_found, c_found] = ind2sub(size(HarrisCorner), i_found);
+
+HarrisVal = HarrisAll(HarrisCorner);
+[HarrisVal, sorted_i_found] = sort(HarrisVal, 'descend');
+
+sorted_i = sorted_i_found(1:min(size(sorted_i_found, 1), 9000));
+y = y_found(sorted_i);
+x = x_found(sorted_i);
+scale_indices = c_found(sorted_i);
+confidence = HarrisVal(sorted_i);
+\end{lstlisting}
+
+\section*{Extra Credit - Scale descriptor corresponding the the scale for the interest point}
+
+In order to reflect the scale selection to the descriptor as well, I used gaussian window corresponding to the point's scale, to weight the magnitude. In this way, using multiple gaussian window with different variance in \textbf{detection} and also use corresponding gaussian window in \textbf{descriptor}, I could achieve effect of examining images in multiple scales by blurring with gaussian window, without really downsampling the image pixels. \\
+To apply gaussian window of corresponding variance of scale selected by detection, I first built 5 gaussian windows, each corresponding to 5 dimensional vector \lstinline{scale} returned by \lstinline{get_interest_points()}.
+\begin{lstlisting}
+gauss_windows = zeros([descriptor_window_image_width, descriptor_window_image_width, size(scales, 2)]);
+for i = 1 : size(scales, 2)
+    gauss_windows(:, :, i) = ...
+        fspecial('gaussian', descriptor_window_image_width, ...
+        scales(i) * 8);
+end
+\end{lstlisting}
+Then, when calculating the descriptor, I applied the corresponding guassian window using the \lstinline{scale_indices} to see which guassian window should be applied.
+\begin{lstlisting}
+mags_cell = mags_cell .* gauss_windows( ...
+    cell_top(1):cell_bottom(1), ...
+    cell_top(2):cell_bottom(2), ...
+    scale_indices(pt_idx));
+\end{lstlisting}
+\textbf{[NOTE]} The reason I added \lstinline{scale_indices} and \lstinline{scales} to \lstinline{match_features()}'s parameters is that I wanted to avoid creating new gausssian window of corresponding scale for each interest point. In this way, I can just pre-declare 5 gaussian windows and retrieve to use them by indices. \\
+The return value \lstinline{scale_indices} and \lstinline{scale} from \lstinline{get_interest_points()} are each used as parameter \lstinline{scale_indices} and \lstinline{scales} of \lstinline{match_features()}.
+
+Applying the scale for both (1) detection and (2) description resulted in accuracy of 97\% on the Notre Dame, 95\% on Mount Rushmore, and 13\% on Episcopal Gaudi with \lstinline{cheat_interest_points} set to true. I thought the reason why the accuracy decreased for Notre Dame and Mount Rushmore is because those two pairs', the pictures' scales are not very different, so applying the scale selection for detection and using the descriptor corresponding to it didn't effect much for the performance and just made more parameters. For Episcopal Gaudi, the scale of picture is quite different, and the accuracy did improve, but it wasn't a very dramatic improvement.
+
+Below figure shows the matching result of my final implementaion.
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=9cm]{eval_ND.png}
+    \caption{Result of match of Notre Dame pair. Accuracy 97\% for highest confidence 100 matches.}
+\end{figure}
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=9cm]{eval_MR.png}
+    \caption{Result of match of Mount Rushmore pair. Accuracy 95\% for highest confidence 100 matches.}
+\end{figure}
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=9cm]{eval_EG.png}
+    \caption{Result of match of Episcopal Gaudi pair. Accuracy 13\% for highest confidence 100 matches.}
+\end{figure}
+
+\end{document}

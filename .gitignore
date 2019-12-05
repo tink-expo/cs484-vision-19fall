@@ -1,9 +1,10 @@
-/*
-
+*
 !.gitignore
 !README.md
 
-**/.DS_Store
-!**.m
-!**.tex
-!**.pdf
+!*/
+!*.m
+!*writeup.tex
+!*Questions.tex
+!*writeup.pdf
+!*Questions.tex
