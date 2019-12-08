@@ -23,7 +23,7 @@ function image_feats = get_bags_of_words(image_paths)
 % feature descriptors will look very different from a smaller version of the same
 % image.
 
-load('vocab.mat')
+load('vocab.mat', 'vocab');
 vocab_size = size(vocab, 1);
 num_images = size(image_paths, 1);
 
