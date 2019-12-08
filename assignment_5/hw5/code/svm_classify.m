@@ -40,14 +40,18 @@ svm_models = cell(num_categories, 1);
 rng(1); % Set seed to 1
 
 for i = 1 : num_categories
-    indx = strcmp(train_labels, categories(i));
-    svm_models{i} = fitclinear(train_image_feats, indx, 'ClassNames', [false true]);
+    binary_vector = strcmp(train_labels, categories(i));
+    svm_models{i} = fitclinear(train_image_feats, binary_vector, 'ClassNames', [false true]);
 end
 
-num_test_images = size(test_image_feats, 1);
-scores = zeros(num_test_images, num_categories);
+m = size(test_image_feats, 1);
+scores_all = zeros(m, num_categories);
 for i = 1 : num_categories
-    
+    [~, scores_category] = predict(svm_models{i}, test_image_feats);
+    scores_all(:, i) = scores_category(:, 2);
+end
+[~, categories_inds] = max(scores_all, [], 2);
+predicted_categories = categories(categories_inds);
 
 
 
