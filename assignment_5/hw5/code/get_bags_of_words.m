@@ -30,8 +30,8 @@ num_images = size(image_paths, 1);
 image_feats = zeros(num_images, vocab_size);
 for i = 1 : num_images
     img = im2double(imread(image_paths{i}));
-    interest_points = detectSURFFeatures(img);
-    interest_points = selectStrongest(interest_points, 500);
+    interest_points = detectSURFFeatures(img, 'MetricThreshold', 100);
+    interest_points = selectStrongest(interest_points, 200);
     [features, ~] = extractHOGFeatures(img, interest_points, 'CellSize', [16 16]);
     
     histogram = zeros(1, vocab_size);

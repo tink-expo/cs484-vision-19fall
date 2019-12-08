@@ -36,5 +36,23 @@ function predicted_categories = svm_classify(train_image_feats, train_labels, te
 categories = unique(train_labels);
 num_categories = length(categories);
 
+svm_models = cell(num_categories, 1);
+rng(1); % Set seed to 1
+
+for i = 1 : num_categories
+    indx = strcmp(train_labels, categories(i));
+    svm_models{i} = fitclinear(train_image_feats, indx, 'ClassNames', [false true]);
+end
+
+num_test_images = size(test_image_feats, 1);
+scores = zeros(num_test_images, num_categories);
+for i = 1 : num_categories
+    
+
+
+
+
+
+
 
 
