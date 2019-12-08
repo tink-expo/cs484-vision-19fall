@@ -131,9 +131,6 @@ end
 % with vocab.mat, or you can utilize Matlab's "code sections" functionality
 % http://www.mathworks.com/help/matlab/matlab_prog/run-sections-of-programs.html
 
-save('train_image_feats.mat', 'train_image_feats');
-save('test_image_feats.mat', 'test_image_feats');
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Step 2: Classify each test image by training and using the appropriate classifier
@@ -143,9 +140,6 @@ save('test_image_feats.mat', 'test_image_feats');
 % 'predicted_categories' must be one of the 15 strings in 'categories',
 % 'train_labels', and 'test_labels'. See the starter code for each function
 % for more details.
-
-load('train_image_feats.mat')
-load('test_image_feats.mat')
 
 fprintf('Using %s classifier to predict test set categories\n', CLASSIFIER)
 
@@ -161,7 +155,7 @@ switch lower(CLASSIFIER)
     case 'placeholder'
         %The placeholder classifier simply predicts a random category for every test case
         random_permutation = randperm(length(test_labels));
-        predicted_categories = test_labels(random_permutation);
+        predicted_categories = test_labels(random_permutation); 
         
     otherwise
         error('Unknown classifier type')
