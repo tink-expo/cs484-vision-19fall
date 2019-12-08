@@ -50,8 +50,8 @@ function projSceneRecBoW()
 
 %% Step 0: Set up parameters, vlfeat, category list, and image paths.
 
-FEATURE = 'tiny image';
-% FEATURE = 'bag of words';
+% FEATURE = 'tiny image';
+FEATURE = 'bag of words';
 % FEATURE = 'placeholder';
 
 CLASSIFIER = 'nearest neighbor';

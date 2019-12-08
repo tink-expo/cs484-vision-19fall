@@ -25,6 +25,25 @@ function image_feats = get_bags_of_words(image_paths)
 
 load('vocab.mat')
 vocab_size = size(vocab, 1);
+num_images = size(image_paths, 1);
+
+image_feats = zeros(num_images, vocab_size);
+for i = 1 : num_images
+    img = im2double(imread(image_paths{i}));
+    interest_points = detectSURFFeatures(img);
+    interest_points = selectStrongest(interest_points, 500);
+    [features, ~] = extractHOGFeatures(img, interest_points, 'CellSize', [16 16]);
+    
+    histogram = zeros(1, vocab_size);
+    for j = 1 : size(features, 1)
+        dist = vocab - features(j, :);
+        dist = (vecnorm(dist'))';
+        [~, vocab_ind] = min(dist);
+        histogram(vocab_ind) = histogram(vocab_ind) + 1;
+    end
+    histogram = histogram / norm(histogram);
+    image_feats(i, :) = histogram; 
+end
 
 
 

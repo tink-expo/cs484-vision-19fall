@@ -26,7 +26,7 @@ function predicted_categories = nearest_neighbor_classify(train_image_feats, tra
 m = size(test_image_feats, 1);
 predicted_categories = cell(m, 1);
 
-k = 3; % Best among 1, 3, 5
+k = 5;
 for i = 1 : m
     diffs = train_image_feats - test_image_feats(i, :);
     diffs = vecnorm(diffs');

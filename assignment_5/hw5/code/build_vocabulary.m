@@ -17,3 +17,17 @@
 % - 'vocab' should be vocab_size x descriptor length. Each row is a cluster centroid / visual word.
 
 function vocab = build_vocabulary( image_paths, vocab_size )
+
+features_all = [];
+n = size(image_paths, 1);
+for i = 1 : n
+    img = im2double(imread(image_paths{i}));
+    interest_points = detectSURFFeatures(img);
+    interest_points = selectStrongest(interest_points, 500);
+    [features, ~] = extractHOGFeatures(img, interest_points, 'CellSize', [16 16]);
+    features_all = cat(1, features_all, features);
+end
+
+[~, vocab] = kmeans(features_all, vocab_size, 'MaxIter', 1000, 'Replicates', 10, 'Start', 'cluster', 'Display', 'iter');
+
+end
