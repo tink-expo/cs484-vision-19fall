@@ -98,7 +98,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{A1:} Your answer here.
 
-
+For data that are not linearly separable, we can map the data to a space of higher dimension. By mapping the original input space to some higher dimensional feature space, the training data can be linearly separable. \\
+This strategy is called kernel trick. When using this strategy, instead of explicitly computing the lifting transformation $\phi(x)$, we can define a kernel function $K$ such that
+$$
+K(x_i, x_j) = \phi(x_i) \cdot \phi(x_j)
+$$
+By this, we can have a transformed feature space. The classifier is a hyperplane in the transformed feature space and it can be nonlinear in the original input space. \\
+Some common kernels include homogeneous polynomial, inhomogeneous polynomial, Gaussian radial basis function, and hyperbolic tangent.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -108,7 +114,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{A2:} Your answer here.
 
+In machine learning,
 
+\textbf{Bias} is a difference between the expected (or average) prediction of our model and the correct value. Bias error is an error from erroneous assumptions and simplifications in the learning algorithm. \\
+\textbf{Variance} is an error from sensitivity to small fluctuations in the training set. It is an amount that the estimate of the target funciton will change if different training data is used.
+
+\textbf{Overfitting} means that the model corresponds too closely or exactly to a particular set of data, so that it may fail to fit additional data or predict future observations reliably. This means that the model is too complex and fits irrelevant characteristics like noise in the data. \textbf{High variance} can make model sensitive to random noise in training data, and therefore cause overfitting. \\
+\textbf{Underfitting} means that the model cannot capture the underlying structure of the data properly. This means that model is too simple to represent all the relevant class characteristics. In other words, some of the parameters that should appear in an adequate model are missing. \textbf{High bias} can make model miss the relevant relations between input features and output target, and therefore cause underfitting.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -121,7 +133,9 @@ How might we evaluate whether bag of words is a good model?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{A3:} Your answer here.
 
-
+\textbf{Advantage}. Main advantage of bag of words representation is that it can extract local features of images with invariance to scale and orientation, if we use methods such as Harris corner detector, SIFT detector, SURF detector, etc, for local features. Also, bag of words representation can be robust to partial occlusion, unlike the global appearance approaches. So, bag of words representation has good performance for recognition of images with lots of variations - images of animals, for example. \\
+\textbf{Disadvantage}. Since bag of words representation describes image by histograms of features, it ignores the spatial relationships between the local feature patches. So, bag of words representation's performance can be very poor for recognition of images of fixed shape - images of certain type of vehicle, for example. \\
+\textbf{Modification}. In order to overcome the disadvantage described above, several methods that can incorporate the spatial information of features have been proposed. One example is spatial pyramid matching. In this method, the image is repeatedly subdivided, creating multi-level image partitions. In each subdividing steps, histograms of image features are computed over the resulting sub-regions. Image recognition is performed by comparing the collection of these histograms, and in this way the spatial information of features are not ignored.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
