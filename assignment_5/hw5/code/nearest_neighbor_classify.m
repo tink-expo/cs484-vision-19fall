@@ -28,9 +28,18 @@ predicted_categories = cell(m, 1);
 
 k = 5;
 for i = 1 : m
-    diffs = train_image_feats - test_image_feats(i, :);
-    diffs = vecnorm(diffs');
-    [~, inds] = mink(diffs, k, 2);
+%     diffs = train_image_feats - test_image_feats(i, :);
+%     diffs = vecnorm(diffs');
+%     [~, inds] = mink(diffs, k, 2);
+    
+    diff = train_image_feats - test_image_feats(i, :);
+    dist = zeros(size(train_image_feats, 1), 1);
+    for j = 1 : size(train_image_feats, 1)
+        dist(j) = norm(diff(j, :));
+    end
+%    [~, inds] = mink(dist, k, 2);
+    [~, inds] = sort(dist');
+    inds = inds(:, 1:k);
     predicted_categories{i} = get_voted_label(inds, train_labels);
 end
 
