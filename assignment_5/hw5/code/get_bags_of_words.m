@@ -36,14 +36,8 @@ for i = 1 : num_images
     
     histogram = zeros(1, vocab_size);
     for j = 1 : size(features, 1)
-%         dist = vocab - features(j, :);
-%         dist = (vecnorm(dist'))';
-        
-        diff = vocab - features(j, :);
-        dist = zeros(vocab_size, 1);
-        for k = 1 : vocab_size
-            dist(k) = norm(diff(k, :));
-        end
+        dist = vocab - features(j, :);
+        dist = (vecnorm(dist'))';
         [~, vocab_ind] = min(dist);
         histogram(vocab_ind) = histogram(vocab_ind) + 1;
     end
