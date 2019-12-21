@@ -93,58 +93,145 @@
   \item \textbf{Please make this document anonymous.}
 \end{itemize}
 
-\section*{In the beginning...}
+\lstset{style=Matlab-editor}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. See Equation~\ref{eq:one}.
+\textbf{[NOTE]} \\
+I wrote my code under assumption that it is tested in \textbf{MATLAB 2019b}. If it is run in lower versions, it may cause errors. Please test it in 2019b.
 
-\begin{equation}
-a = b + c
-\label{eq:one}
-\end{equation}
+\section*{Implementation}
 
-\section*{Interesting Implementation Detail}
+\textbf{Representation - Tiny images} \\
+I made tiny image representation by applying below code to each double image.
+\begin{lstlisting}
+% To tiny img.
+img = imresize(img, [16, 16]);
+img = reshape(img, [1, 16 * 16]);
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+% zero mean and unit length.
+img = img - mean(img);
+img = img / norm(img);
+\end{lstlisting}
 
-My code snippet highlights an interesting point.
-\begin{lstlisting}[style=Matlab-editor]
-one = 1;
-two = one + one;
-if two == 2
-    disp( 'This computer is not broken.' );
+\textbf{Representation - Bag of words} \\
+First, I extracted features from images and clustered them to build a vocabulary.
+For extracting features, I used MATLAB \lstinline{extractHOGFeatures} function.
+Instead of extracting at every 20x20 grid points, I used interest points detected by MATLAB \lstinline{detectSURFFeatures}.
+\begin{lstlisting}
+interest_points = detectSURFFeatures(img, 'MetricThreshold', 100);
+interest_points = selectStrongest(interest_points, 200);
+[features, ~] = extractHOGFeatures(img, interest_points, 'CellSize', [16 16]);
+features_all = cat(1, features_all, features);
+\end{lstlisting}
+After concatenating the features extracted from each images by above code,
+I clustered them as below.
+\begin{lstlisting}
+[~, vocab] = kmeans(features_all, vocab_size, 'MaxIter', 1000, 'Replicates', 10, 'Start', 'cluster');
+\end{lstlisting}
+Using the vocabulary built by above procedure, each images can be represented by a bag of words.
+I extracted features for each images using the same method described above. 
+This could be seen as a redundant procedure, but since we save the vocabulary matrix and do not perform building vocabulary each time,
+so actually it is not.
+Then, I built a histogram for each images - which is a bag of word reperesentation - using the code below.
+The histogram represents the frequency of words in vocabulary that was defined that is closest to the each features extracted from the image.
+In order to make this representation reasonable even if the number of detected features differs by images, I applied unit size normalization to the histogram.
+\begin{lstlisting}
+histogram = zeros(1, vocab_size);
+for j = 1 : size(features, 1)
+    dist = vocab - features(j, :);
+    dist = (vecnorm(dist'))';
+    [~, vocab_ind] = min(dist);
+    histogram(vocab_ind) = histogram(vocab_ind) + 1;
+end
+histogram = histogram / norm(histogram);
+image_feats(i, :) = histogram;
+\end{lstlisting}
+
+\textbf{Classification - Nearest neighbor} \\
+I used voting based on k nearest neighbors, with k set to 5.
+For each test image features, I selected k nearest neighbor by below code.
+\begin{lstlisting}
+diffs = train_image_feats - test_image_feats(i, :);
+diffs = vecnorm(diffs');
+[~, inds] = mink(diffs, k, 2);
+\end{lstlisting}
+Then I got the prediction result by voting using function below.
+\begin{lstlisting}
+function max_label = get_voted_label(inds, train_labels)
+
+k = size(inds, 2);
+found_labels = cell(k, 1);
+for i = 1 : k
+    found_labels{i} = train_labels{inds(i)};
+end
+votes = zeros(k, 1);
+for i = 1 : k
+    votes(i) = nnz(strcmp(found_labels{i}, found_labels));
+end
+[~, vote_ind] = max(votes);
+max_label = found_labels{vote_ind};
+
 end
 \end{lstlisting}
 
-\section*{A Result}
+\textbf{Classification - Support vector machine} \\
+In order to make a multi-class SVM, I first trained binary (true or false) SVM for each categories by using the code below.
+I didn't tune the \lstinline{Lambda} parameter, since using default lambda gave accuracy higher than 50\%.
+\begin{lstlisting}
+for i = 1 : num_categories
+    binary_vector = strcmp(train_labels, categories(i));
+    svm_models{i} = fitclinear(train_image_feats, binary_vector, 'ClassNames', [false true]);
+end
+\end{lstlisting}
+Then, each images are predicted by the binary SVMs of every categories. 
+I set the prediction result to be the category that gives the highest score at binary prediction for "true" label.
+\begin{lstlisting}
+m = size(test_image_feats, 1);
+scores_all = zeros(m, num_categories);
+for i = 1 : num_categories
+    [~, scores_category] = predict(svm_models{i}, test_image_feats);
+    scores_all(:, i) = scores_category(:, 2);
+end
+[~, categories_inds] = max(scores_all, [], 2);
+predicted_categories = categories(categories_inds);
+\end{lstlisting}
 
-\begin{enumerate}
-    \item Result 1 was a total failure, because...
-    \item Result 2 (Figure~\ref{fig:result1}, left) was surprising, because...
-    \item Result 3 (Figure~\ref{fig:result1}, right) blew my socks off, because...
-\end{enumerate}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=5cm]{placeholder.jpg}
-    \includegraphics[width=5cm]{placeholder.jpg}
-    \caption{\emph{Left:} My result was spectacular. \emph{Right:} Curious.}
-    \label{fig:result1}
-\end{figure}
-
-My results are summarized in Table~\ref{tab:table1}.
+\section*{Results}
 
 \begin{table}[h]
     \centering
-    \begin{tabular}{lr}
+    \begin{tabular}{ccc}
         \toprule
-        Condition & Time (seconds) \\
+        Methods & Accuracy (\%) & Elapsed time (s) \\
         \midrule
-        Test 1 & 1 \\
-        Test 2 & 1000 \\
+        Tiny images \& Nearest neighbor & 22.2 & 8.03 \\
+        Bag of words \& Nearest neighbor & 44.2 & 78.08 \\
+        Bag of words \& Support vector machine & 53.7 & 79.44 \\
         \bottomrule
     \end{tabular}
-    \caption{Stunning revelation about the efficiency of my code.}
+    \caption{Accuracy and elapsed times comparison of each methods.}
     \label{tab:table1}
 \end{table}
+
+\pagebreak
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=5cm]{tiny_nearest.jpg}
+    \caption{Confusion matrix result from \textit{Tiny images \& Nearest neighbor}.}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=5cm]{bow_nearest.jpg}
+    \caption{Confusion matrix result from \textit{Bag of words \& Nearest neighbor}.}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=5cm]{bow_svm.jpg}
+    \caption{Confusion matrix result from \textit{Bag of words \& Support vector machine}.}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=6cm]{table.jpg}
+    \caption{Classification result table from \textit{Bag of words \& Support vector machine}. This method setup had the best accuracy, and its elapsed time didn't have big difference from the second best accuracy method.}
+\end{figure}
 
 \end{document}

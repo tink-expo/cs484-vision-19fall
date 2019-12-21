@@ -56,7 +56,7 @@ if ~exist(writeupFile,'file')
     cd ..
 end
 
-zip( 'cs484submission.zip', {'code/*.m','writeup/writeup.pdf', 'questions/2019_Fall_Homework5_Questions.pdf'} );
+zip( 'cs484submission.zip', {'code/*.m', 'code/*.mat', 'writeup/writeup.pdf', 'questions/2019_Fall_Homework5_Questions.pdf'} );
 disp( 'cs484submission.zip file is successfully generated.' );
 
 end
