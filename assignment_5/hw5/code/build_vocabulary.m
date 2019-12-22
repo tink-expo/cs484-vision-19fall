@@ -28,6 +28,5 @@ for i = 1 : n
     features_all = cat(1, features_all, features);
 end
 
-% [~, vocab] = kmeans(features_all, vocab_size, 'MaxIter', 1000, 'Replicates', 10, 'Start', 'cluster');
-[~, vocab] = kmeans(features_all, vocab_size, 'MaxIter', 1000);
+[~, vocab] = kmeans(features_all, vocab_size);
 end

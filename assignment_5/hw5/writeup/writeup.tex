@@ -125,7 +125,7 @@ features_all = cat(1, features_all, features);
 After concatenating the features extracted from each images by above code,
 I clustered them as below.
 \begin{lstlisting}
-[~, vocab] = kmeans(features_all, vocab_size, 'MaxIter', 1000, 'Replicates', 10, 'Start', 'cluster');
+[~, vocab] = kmeans(features_all, vocab_size);
 \end{lstlisting}
 Using the vocabulary built by above procedure, each images can be represented by a bag of words.
 I extracted features for each images using the same method described above. 
@@ -147,7 +147,7 @@ image_feats(i, :) = histogram;
 \end{lstlisting}
 
 \textbf{Classification - Nearest neighbor} \\
-I used voting based on k nearest neighbors, with k set to 5.
+I used voting based on k nearest neighbors, with k set to 7.
 For each test image features, I selected k nearest neighbor by below code.
 \begin{lstlisting}
 diffs = train_image_feats - test_image_feats(i, :);
@@ -175,11 +175,11 @@ end
 
 \textbf{Classification - Support vector machine} \\
 In order to make a multi-class SVM, I first trained binary (true or false) SVM for each categories by using the code below.
-I didn't tune the \lstinline{Lambda} parameter, since using default lambda gave accuracy higher than 50\%.
+I set the \lstinline{Lambda} parameter to \lstinline{4.8e-04} by manual testing.
 \begin{lstlisting}
 for i = 1 : num_categories
     binary_vector = strcmp(train_labels, categories(i));
-    svm_models{i} = fitclinear(train_image_feats, binary_vector, 'ClassNames', [false true]);
+    svm_models{i} = fitclinear(train_image_feats, binary_vector, 'ClassNames', [false true], 'Lambda', 4.8e-04);
 end
 \end{lstlisting}
 Then, each images are predicted by the binary SVMs of every categories. 
@@ -197,15 +197,17 @@ predicted_categories = categories(categories_inds);
 
 \section*{Results}
 
+Elapsed time of \lstinline{build_vocabulary.m} was 116.083s. \\
+Below describes the elapsed times excluding \lstinline{build_vocabulary.m} and accuracies of each methods.
 \begin{table}[h]
     \centering
     \begin{tabular}{ccc}
         \toprule
         Methods & Accuracy (\%) & Elapsed time (s) \\
         \midrule
-        Tiny images \& Nearest neighbor & 22.2 & 8.03 \\
-        Bag of words \& Nearest neighbor & 44.2 & 78.08 \\
-        Bag of words \& Support vector machine & 53.7 & 79.44 \\
+        Tiny images \& Nearest neighbor & 23.2 & 7.887 \\
+        Bag of words \& Nearest neighbor & 44.9 & 80.710 \\
+        Bag of words \& Support vector machine & 55.0 & 79.898 \\
         \bottomrule
     \end{tabular}
     \caption{Accuracy and elapsed times comparison of each methods.}
@@ -215,23 +217,23 @@ predicted_categories = categories(categories_inds);
 \pagebreak
 \begin{figure}[h]
     \centering
-    \includegraphics[width=5cm]{tiny_nearest.jpg}
+    \includegraphics[width=5cm]{tiny_nearest.png}
     \caption{Confusion matrix result from \textit{Tiny images \& Nearest neighbor}.}
 \end{figure}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=5cm]{bow_nearest.jpg}
+    \includegraphics[width=5cm]{bow_nearest.png}
     \caption{Confusion matrix result from \textit{Bag of words \& Nearest neighbor}.}
 \end{figure}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=5cm]{bow_svm.jpg}
+    \includegraphics[width=5cm]{bow_svm.png}
     \caption{Confusion matrix result from \textit{Bag of words \& Support vector machine}.}
 \end{figure}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=6cm]{table.jpg}
-    \caption{Classification result table from \textit{Bag of words \& Support vector machine}. This method setup had the best accuracy, and its elapsed time didn't have big difference from the second best accuracy method.}
+    \includegraphics[width=6cm]{table.png}
+    \caption{Classification result table from \textit{Bag of words \& Support vector machine}. This method setup had the best accuracy, and its elapsed time was slightly shorter than the second best accuracy method.}
 \end{figure}
 
 \end{document}
