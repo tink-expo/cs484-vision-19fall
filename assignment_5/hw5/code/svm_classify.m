@@ -41,7 +41,7 @@ rng(1); % Set seed to 1
 
 for i = 1 : num_categories
     binary_vector = strcmp(train_labels, categories(i));
-    svm_models{i} = fitclinear(train_image_feats, binary_vector, 'ClassNames', [false true]);
+    svm_models{i} = fitclinear(train_image_feats, binary_vector, 'ClassNames', [false true], 'Lambda', 4.8e-04);
 end
 
 m = size(test_image_feats, 1);
