@@ -1,14 +1,1 @@
-*
-!.gitignore
-!README.md
-
-!*/
-!*.m
-!*writeup.tex
-!*Questions.tex
-!*writeup.pdf
-!*Questions.tex
-
-!*vocab.mat
-!*test.mat
-!*train.mat
+**.mat
